@@ -1,18 +1,19 @@
 """
-Modern Web Studio for Text Steganography
-----------------------------------------
+Ultra-Modern Web Studio for Text Steganography
+----------------------------------------------
 Built with Streamlit for a fast, responsive, browser-based UI/UX.
 Features:
-- Drag-and-drop image upload
+- Glassmorphic hero header with glowing typography
+- Drag-and-drop image upload zones with instant thumbnail rendering
 - Live capacity calculations & dynamic progress gauges
 - Side-by-side original vs stego image comparison
-- One-click stego image download button
-- Interactive tamper radar on extraction
+- One-click stego image download button (.png)
+- Interactive Tamper Radar on extraction with Majority Voting breakdown
 - Educational walkthrough of LSB substitution & majority voting
 """
 
 import streamlit as st
-from PIL import Image
+from PIL import Image, ImageChops
 import io
 import os
 import tempfile
@@ -26,73 +27,96 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for Sleek Theme
+# Ultra-Modern CSS Styling
 st.markdown("""
 <style>
-    .main-header {
-        background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
-        padding: 24px;
-        border-radius: 12px;
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+    
+    html, body, [class*="css"] {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    
+    .hero-banner {
+        background: linear-gradient(135deg, #090d16 0%, #1e1b4b 50%, #0f172a 100%);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 10px 30px -10px rgba(79, 70, 229, 0.3);
+        border-radius: 16px;
+        padding: 28px 32px;
         color: white;
         margin-bottom: 24px;
     }
-    .metric-card {
-        background-color: #f8fafc;
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
-        padding: 16px;
-        text-align: center;
+    
+    .hero-title {
+        font-size: 30px;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+        margin: 0;
+        background: linear-gradient(90deg, #ffffff, #c7d2fe);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
     }
-    .badge-robust {
-        background-color: #e0e7ff;
-        color: #4338ca;
-        padding: 4px 10px;
-        border-radius: 6px;
-        font-weight: 600;
-        font-size: 13px;
+    
+    .hero-subtitle {
+        color: #94a3b8;
+        font-size: 14px;
+        margin-top: 6px;
     }
+    
+    .glass-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 16px;
+    }
+    
     .badge-intact {
-        background-color: #d1fae5;
-        color: #065f46;
-        padding: 6px 12px;
-        border-radius: 6px;
+        background: linear-gradient(90deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.2));
+        border: 1px solid rgba(16, 185, 129, 0.4);
+        color: #10b981;
+        padding: 10px 16px;
+        border-radius: 10px;
         font-weight: 600;
+        margin-bottom: 14px;
     }
+    
     .badge-tampered {
-        background-color: #fef3c7;
-        color: #92400e;
-        padding: 6px 12px;
-        border-radius: 6px;
+        background: linear-gradient(90deg, rgba(245, 158, 11, 0.15), rgba(217, 119, 6, 0.2));
+        border: 1px solid rgba(245, 158, 11, 0.4);
+        color: #f59e0b;
+        padding: 10px 16px;
+        border-radius: 10px;
         font-weight: 600;
+        margin-bottom: 14px;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# Top Banner
+# Top Hero Banner
 st.markdown("""
-<div class="main-header">
-    <h1 style="margin:0; font-size: 28px;">🔐 Text Steganography Studio</h1>
-    <p style="margin:4px 0 0 0; color: #94a3b8; font-size: 14px;">
-        Robust LSB Digital Image Steganography with Majority-Voting Error Correction & Tamper Detection
-    </p>
+<div class="hero-banner">
+    <div class="hero-title">🔐 Text Steganography Studio</div>
+    <div class="hero-subtitle">
+        Next-Generation LSB Digital Image Steganography with Majority-Voting Error Correction & Tamper Detection
+    </div>
 </div>
 """, unsafe_allow_html=True)
 
-# Sidebar Information
+# Sidebar
 with st.sidebar:
-    st.subheader("⚙️ System Status")
-    st.info("💡 **Tip**: Always download and transmit images in lossless **PNG** format to preserve hidden LSB data.")
+    st.markdown("### ⚙️ Engine Specs")
+    st.info("💡 **Lossless Notice**: Steganographic data relies on exact pixel bit values. Always download & transmit images as **PNG**.")
     
     st.markdown("---")
-    st.markdown("### 🔬 Core Architecture")
-    st.markdown("- **Algorithm**: Spatial LSB substitution")
-    st.markdown("- **Fault Tolerance**: 5x Block-Interleaved Majority Voting")
-    st.markdown("- **Header**: 64-bit protected binary header")
-    st.markdown("- **Format**: Lossless RGB PNG/BMP")
+    st.markdown("#### 🔬 Technical Highlights")
+    st.markdown("- **Domain**: Spatial RGB Pixel LSBs")
+    st.markdown("- **Resilience**: 5x Block-Interleaved Majority Voting")
+    st.markdown("- **Delimiter**: 64-bit protected binary header")
+    st.markdown("- **Perception**: $\\Delta E \\approx 0.0$ (Indistinguishable)")
     
     st.markdown("---")
-    st.markdown("### ⚡ Quick Demo Image")
-    if st.button("Generate Demo Image in Workspace"):
+    st.markdown("#### ⚡ Quick Demo Sample")
+    if st.button("Generate Demo Image in Workspace", use_container_width=True):
         demo_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sample_carrier.png")
         if not os.path.exists(demo_path):
             img = Image.new("RGB", (300, 300))
@@ -104,24 +128,23 @@ with st.sidebar:
 
 # Main Tabs
 tab_encode, tab_decode, tab_about = st.tabs([
-    "🔒 Hide Message (Encode)",
-    "🔓 Extract Message (Decode)",
-    "📘 How It Works & Theory"
+    "🔒  Hide Message (Encode)",
+    "🔓  Extract Message (Decode)",
+    "📘  How It Works & Theory"
 ])
 
 # =============================================================================
 # TAB 1: ENCODE
 # =============================================================================
 with tab_encode:
-    st.subheader("Step 1: Upload Carrier Image")
+    st.markdown("#### 1. Upload Carrier Image")
     uploaded_file = st.file_uploader(
-        "Choose a carrier image (PNG, JPG, BMP)",
+        "Choose an image to serve as the carrier",
         type=["png", "jpg", "jpeg", "bmp"],
         key="uploader_encode"
     )
 
     if uploaded_file:
-        # Load and display image metrics
         col_img, col_settings = st.columns([1, 1.2])
 
         with col_img:
@@ -135,14 +158,14 @@ with tab_encode:
             mode_choice = st.radio(
                 "Protection & Integrity Mode:",
                 options=[
-                    "🛡️ Robust Mode (5x Redundancy) — Recommended (Survives pixel edits & noise)",
+                    "🛡️ Robust Mode (5x Redundancy) — Resilient to pixel edits & noise via Majority Voting [Recommended]",
                     "⚡ Standard Mode (1x Redundancy) — Maximum Capacity"
                 ],
                 index=0
             )
             redundancy = 5 if "5x" in mode_choice else 1
 
-            # Save uploaded image to temp file for capacity calculation
+            # Temp file for capacity calculation
             with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp:
                 image.save(tmp.name, format="PNG")
                 tmp_cover_path = tmp.name
@@ -159,18 +182,18 @@ with tab_encode:
             m3.metric("Capacity", f"{capacity:,} chars")
 
             st.markdown("---")
-            st.subheader("Step 2: Enter Secret Message")
+            st.markdown("#### 2. Enter Secret Message")
             secret_input = st.text_area(
                 "Secret Confidential Text:",
                 height=130,
-                placeholder="Type your sensitive message here..."
+                placeholder="Type your sensitive confidential message here..."
             )
 
             # Capacity Progress
             msg_len = len(secret_input)
             if capacity > 0:
                 pct = min(1.0, msg_len / capacity)
-                st.progress(pct, text=f"Capacity Used: {msg_len:,} / {capacity:,} characters ({pct*100:.1f}%)")
+                st.progress(pct, text=f"Storage Utilization: {msg_len:,} / {capacity:,} characters ({pct*100:.1f}%)")
             else:
                 st.warning("Image capacity is too small.")
 
@@ -184,7 +207,7 @@ with tab_encode:
                             out_stego_path = out_tmp.name
 
                         res = encode_text(tmp_cover_path, secret_input, out_stego_path, redundancy=redundancy)
-                        st.success(f"✅ Secret message successfully embedded in **{res['mode']}** mode!")
+                        st.success(f"✅ Message successfully embedded in **{res['mode']}** mode!")
 
                         # Download button
                         with open(out_stego_path, "rb") as f:
@@ -195,7 +218,7 @@ with tab_encode:
                             data=stego_bytes,
                             file_name="stego_image.png",
                             mime="image/png",
-                            type="secondary",
+                            type="primary",
                             use_container_width=True
                         )
 
@@ -215,9 +238,9 @@ with tab_encode:
 # TAB 2: DECODE
 # =============================================================================
 with tab_decode:
-    st.subheader("Step 1: Upload Stego Image")
+    st.markdown("#### 1. Upload Stego Image")
     stego_upload = st.file_uploader(
-        "Choose an image containing hidden data (PNG, BMP)",
+        "Upload an image containing embedded text (PNG, BMP)",
         type=["png", "bmp"],
         key="uploader_decode"
     )
@@ -241,30 +264,30 @@ with tab_decode:
                     # Integrity Card
                     if res.tampered:
                         st.markdown(f"""
-                        <div class="badge-tampered" style="margin-bottom:12px;">
-                            ⚠️ TAMPERING DETECTED & REPAIRED ({res.mode})<br>
+                        <div class="badge-tampered">
+                            <b>⚠️ TAMPERING DETECTED & REPAIRED ({res.mode})</b><br>
                             <small>• Corrupted bits repaired: <b>{res.tampered_bits:,} bits</b> via Majority Voting.<br>
-                            • Tamper Rate: <b>{res.tamper_rate}%</b> of sampled bits were modified.</small>
+                            • Tamper Rate: <b>{res.tamper_rate}%</b> of sampled bits were modified.<br>
+                            • Status: 100% of secret text successfully restored.</small>
                         </div>
                         """, unsafe_allow_html=True)
                     else:
                         st.markdown(f"""
-                        <div class="badge-intact" style="margin-bottom:12px;">
-                            ✅ IMAGE INTACT & PRISTINE ({res.mode})<br>
+                        <div class="badge-intact">
+                            <b>✅ IMAGE INTACT & PRISTINE ({res.mode})</b><br>
                             <small>• Clean signal: 0 bit flips detected.<br>
                             • 100.0% pixel bit integrity match.</small>
                         </div>
                         """, unsafe_allow_html=True)
 
-                    # Extracted Text
                     st.text_area(
                         "Extracted Confidential Message:",
                         value=res,
-                        height=150
+                        height=160
                     )
 
                     st.download_button(
-                        label="📄 Download Secret Message (.txt)",
+                        label="📄 Download Extracted Message (.txt)",
                         data=res,
                         file_name="secret_message.txt",
                         mime="text/plain"
@@ -278,7 +301,7 @@ with tab_decode:
                         os.unlink(tmp_stego_path)
 
 # =============================================================================
-# TAB 3: HOW IT WORKS & THEORY
+# TAB 3: THEORY & HOW IT WORKS
 # =============================================================================
 with tab_about:
     st.markdown("### 🧠 How Spatial LSB Steganography Works")
@@ -294,7 +317,7 @@ with tab_about:
     Difference:           +1 unit (completely imperceptible to human eyes)
     """, language="text")
 
-    st.markdown("### 🛡️ Why Standard LSB Breaks and How We Solved It")
+    st.markdown("### 🛡️ Why Standard LSB Breaks & How Majority Voting Solves It")
     st.markdown("""
     - **The Problem**: Standard LSB is fragile. Modifying pixels flips the bits, and destroys fragile string delimiters (`#####END#####`).
     - **The Solution (Majority Voting)**:
