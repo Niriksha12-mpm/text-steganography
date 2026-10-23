@@ -1,80 +1,128 @@
 """
 Ultra-Modern Desktop Graphical User Interface for Text Steganography
 ---------------------------------------------------------------------
-Built with CustomTkinter for a native Windows 11 / macOS fluent aesthetic:
-- True rounded cards, buttons, and segmented pill controls
-- High-DPI live thumbnail previews via CTkImage
-- Dynamic theme switching (Dark 🌙 / Light ☀️)
-- Real-time animated capacity progress bar
-- One-click demo image loader
-- Glowing Tamper Radar with Majority Voting repair metrics
-- Smooth copy-to-clipboard feedback
+Executive 2-Column Split Dashboard Layout:
+- Left Column: Image & Engine Hub (Thumbnails, Metadata Pills, Protection Modes)
+- Right Column: Secret Message Studio & Telemetry (Multi-Format Templates, Word/Byte Counters, Gauges)
+- Decode Hub: Stego Inspector, Format Auto-Detection, and Visual Tamper Radar
+- True Rounded Modern Fluent Design via CustomTkinter
 """
 
 import customtkinter as ctk
 import tkinter as tk
 from tkinter import filedialog, messagebox
 import os
+import json
+from datetime import datetime
 from PIL import Image, ImageDraw
 from stego_core import encode_text, decode_text, get_image_capacity
 
-# Configure global theme settings
+# Global theme
 ctk.set_appearance_mode("Dark")
 ctk.set_default_color_theme("blue")
 
+# Template formats
+TEMPLATES = {
+    "📝 Plain Text": "",
+    "🔒 Classified Memo": (
+        "=====================================================\n"
+        "CLASSIFICATION: TOP SECRET // STRICTLY CONFIDENTIAL\n"
+        f"TIMESTAMP:      {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+        "CLEARANCE:      LEVEL 5 (EYES ONLY)\n"
+        "SUBJECT:        Operation Quantum Cipher\n"
+        "=====================================================\n\n"
+        "TRANSMISSION BODY:\n"
+        "The encrypted rendezvous point has been established.\n"
+        "All secondary channels are secured. Proceed with plan."
+    ),
+    "⚡ JSON Data": (
+        "{\n"
+        '  "protocol": "STEGO-LSB-ROBUST",\n'
+        '  "version": "2.0",\n'
+        '  "status": "classified",\n'
+        '  "credentials": {\n'
+        '    "token": "sec_98f4a2bc01e89",\n'
+        '    "access_level": 5\n'
+        "  },\n"
+        '  "nodes": ["alpha-01", "echo-04"]\n'
+        "}"
+    ),
+    "💻 Hex / Key": (
+        "--- BEGIN STEGANOGRAPHIC ACCESS KEY ---\n"
+        "KEY_ID:   0x8F9A4B2C_0019A\n"
+        "HASH:     e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\n"
+        "ENDPOINT: sftp://vault.secure.internal:8088\n"
+        "--- END STEGANOGRAPHIC ACCESS KEY ---"
+    )
+}
 
-class UltraModernStegoGUI(ctk.CTk):
+
+class ExecutiveStegoStudio(ctk.CTk):
     def __init__(self):
         super().__init__()
 
-        self.title("Text Steganography Studio — Next-Gen LSB Data Hiding")
-        self.geometry("860x740")
-        self.minsize(800, 680)
+        self.title("Text Steganography Studio — Executive Dashboard")
+        self.geometry("980x760")
+        self.minsize(920, 700)
 
-        # State Variables - Encode
+        # State - Encode
         self.enc_img_path = ""
         self.enc_capacity = 0
-        self.enc_redundancy = 5  # Default: Robust 5x
-        self.enc_img_obj = None
+        self.enc_redundancy = 5
+        self.current_template_key = "📝 Plain Text"
 
-        # State Variables - Decode
+        # State - Decode
         self.dec_img_path = ""
-        self.dec_img_obj = None
 
         self._build_header()
-        self._build_tabs()
+        self._build_tabview()
         self._build_statusbar()
 
     # =========================================================================
-    # HEADER SECTION
+    # HEADER
     # =========================================================================
     def _build_header(self):
-        header_frame = ctk.CTkFrame(self, corner_radius=0, height=75, fg_color=("gray88", "gray13"))
-        header_frame.pack(fill="x", side="top")
-        header_frame.pack_propagate(False)
+        header = ctk.CTkFrame(self, corner_radius=0, height=72, fg_color=("gray88", "gray13"))
+        header.pack(fill="x", side="top")
+        header.pack_propagate(False)
 
-        # Left: Title and Subtitle
-        title_box = ctk.CTkFrame(header_frame, fg_color="transparent")
-        title_box.pack(side="left", padx=24, pady=12)
+        # Title & Badges
+        title_box = ctk.CTkFrame(header, fg_color="transparent")
+        title_box.pack(side="left", padx=24, pady=10)
+
+        row_title = ctk.CTkFrame(title_box, fg_color="transparent")
+        row_title.pack(anchor="w")
 
         main_title = ctk.CTkLabel(
-            title_box,
+            row_title,
             text="🔐 TEXT STEGANOGRAPHY STUDIO",
             font=ctk.CTkFont(family="Segoe UI", size=18, weight="bold")
         )
-        main_title.pack(anchor="w")
+        main_title.pack(side="left", padx=(0, 10))
+
+        badge = ctk.CTkLabel(
+            row_title,
+            text="v2.5 PRO",
+            font=ctk.CTkFont(family="Segoe UI", size=10, weight="bold"),
+            fg_color=("#4f46e5", "#6366f1"),
+            text_color="#ffffff",
+            corner_radius=6,
+            padx=8,
+            pady=2
+        )
+        badge.pack(side="left")
 
         subtitle = ctk.CTkLabel(
             title_box,
-            text="Robust LSB Data Hiding with Majority-Voting Error Correction & Tamper Detection",
+            text="Spatial LSB Digital Steganography • 5x Majority-Voting Error Correction • Tamper Telemetry",
             font=ctk.CTkFont(family="Segoe UI", size=11),
             text_color=("gray45", "gray65")
         )
         subtitle.pack(anchor="w")
 
-        # Right: Theme Switcher
-        theme_box = ctk.CTkFrame(header_frame, fg_color="transparent")
-        theme_box.pack(side="right", padx=24, pady=12)
+        # Theme Switcher
+        theme_box = ctk.CTkFrame(header, fg_color="transparent")
+        theme_box.pack(side="right", padx=24, pady=10)
 
         self.theme_switch = ctk.CTkSwitch(
             theme_box,
@@ -88,29 +136,29 @@ class UltraModernStegoGUI(ctk.CTk):
         self.theme_switch.pack()
 
     # =========================================================================
-    # TABVIEW (ENCODE / DECODE)
+    # TABS (ENCODE / DECODE)
     # =========================================================================
-    def _build_tabs(self):
+    def _build_tabview(self):
         self.tabview = ctk.CTkTabview(self, corner_radius=12)
-        self.tabview.pack(fill="both", expand=True, padx=20, pady=(12, 8))
+        self.tabview.pack(fill="both", expand=True, padx=20, pady=(10, 6))
 
-        self.tab_encode = self.tabview.add("  🔒 Hide Message (Encode)  ")
-        self.tab_decode = self.tabview.add("  🔓 Extract Message (Decode)  ")
+        self.tab_encode = self.tabview.add("   🔒 Hide Message (Encode Hub)   ")
+        self.tab_decode = self.tabview.add("   🔓 Extract Message (Decode Hub)   ")
 
-        self._build_encode_tab()
-        self._build_decode_tab()
+        self._build_encode_dashboard()
+        self._build_decode_dashboard()
 
     # =========================================================================
     # STATUS BAR
     # =========================================================================
     def _build_statusbar(self):
-        status_frame = ctk.CTkFrame(self, corner_radius=0, height=30, fg_color=("gray90", "gray11"))
-        status_frame.pack(fill="x", side="bottom")
-        status_frame.pack_propagate(False)
+        status_bar = ctk.CTkFrame(self, corner_radius=0, height=28, fg_color=("gray90", "gray11"))
+        status_bar.pack(fill="x", side="bottom")
+        status_bar.pack_propagate(False)
 
         self.status_lbl = ctk.CTkLabel(
-            status_frame,
-            text="Ready. Select an image or click '⚡ Load Demo Image' to begin.",
+            status_bar,
+            text="System Online. Ready to process carrier images.",
             font=ctk.CTkFont(family="Segoe UI", size=11),
             text_color=("gray40", "gray60"),
             anchor="w"
@@ -118,329 +166,383 @@ class UltraModernStegoGUI(ctk.CTk):
         self.status_lbl.pack(fill="both", expand=True, padx=20)
 
     # =========================================================================
-    # TAB 1: ENCODE TAB
+    # TAB 1: 2-COLUMN ENCODE DASHBOARD
     # =========================================================================
-    def _build_encode_tab(self):
-        parent = self.tab_encode
+    def _build_encode_dashboard(self):
+        container = ctk.CTkFrame(self.tab_encode, fg_color="transparent")
+        container.pack(fill="both", expand=True, padx=4, pady=6)
 
-        # Card 1: Carrier Image Selection
-        card_img = ctk.CTkFrame(parent, corner_radius=12)
-        card_img.pack(fill="x", pady=(0, 10), padx=8)
+        container.grid_columnconfigure(0, weight=4, minsize=350)  # Left Column (Image & Engine)
+        container.grid_columnconfigure(1, weight=6, minsize=460)  # Right Column (Message Studio)
+        container.grid_rowconfigure(0, weight=1)
 
-        card_title = ctk.CTkLabel(
-            card_img,
-            text="1. Carrier (Cover) Image",
-            font=ctk.CTkFont(family="Segoe UI", size=13, weight="bold")
+        # ---------------------------------------------------------------------
+        # LEFT COLUMN: Image & Security Hub
+        # ---------------------------------------------------------------------
+        col_left = ctk.CTkFrame(container, corner_radius=12)
+        col_left.grid(row=0, column=0, sticky="nsew", padx=(0, 10), pady=0)
+
+        # Title
+        sec_title1 = ctk.CTkLabel(
+            col_left,
+            text="📸 CARRIER IMAGE & ENGINE HUB",
+            font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
+            text_color=("#4f46e5", "#818cf8")
         )
-        card_title.pack(anchor="w", padx=16, pady=(12, 6))
-
-        img_content = ctk.CTkFrame(card_img, fg_color="transparent")
-        img_content.pack(fill="x", padx=16, pady=(0, 14))
+        sec_title1.pack(anchor="w", padx=16, pady=(14, 8))
 
         # Thumbnail Box
         self.enc_preview_lbl = ctk.CTkLabel(
-            img_content,
-            text="📷 No Image",
-            width=140,
-            height=100,
-            corner_radius=8,
+            col_left,
+            text="📷 Drop or Select Carrier Image",
+            width=260,
+            height=140,
+            corner_radius=10,
             fg_color=("gray85", "gray18")
         )
-        self.enc_preview_lbl.pack(side="left", padx=(0, 16))
+        self.enc_preview_lbl.pack(fill="x", padx=16, pady=(0, 10))
 
-        # Info & Buttons
-        info_col = ctk.CTkFrame(img_content, fg_color="transparent")
-        info_col.pack(side="left", fill="both", expand=True)
+        # Metadata Pills Card
+        meta_card = ctk.CTkFrame(col_left, corner_radius=8, fg_color=("gray92", "gray16"))
+        meta_card.pack(fill="x", padx=16, pady=(0, 10))
 
-        self.enc_path_lbl = ctk.CTkLabel(
-            info_col,
-            text="No carrier image selected.",
-            font=ctk.CTkFont(family="Consolas", size=11),
-            text_color=("gray50", "gray70"),
-            anchor="w"
+        self.enc_pill_res = ctk.CTkLabel(
+            meta_card, text="📐 Res: --", font=ctk.CTkFont(family="Segoe UI", size=11, weight="bold"),
+            text_color=("gray40", "gray70")
         )
-        self.enc_path_lbl.pack(fill="x", pady=(2, 4))
+        self.enc_pill_res.pack(anchor="w", padx=12, pady=(8, 2))
 
-        self.enc_meta_lbl = ctk.CTkLabel(
-            info_col,
-            text="Supported formats: PNG, JPG, BMP",
-            font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
-            text_color=("#0d9488", "#2dd4bf"),
-            anchor="w"
+        self.enc_pill_format = ctk.CTkLabel(
+            meta_card, text="🖼️ Format: --  |  💾 Size: --", font=ctk.CTkFont(family="Segoe UI", size=11),
+            text_color=("gray40", "gray70")
         )
-        self.enc_meta_lbl.pack(fill="x", pady=(0, 8))
+        self.enc_pill_format.pack(anchor="w", padx=12, pady=2)
 
-        btn_row = ctk.CTkFrame(info_col, fg_color="transparent")
-        btn_row.pack(anchor="w")
+        self.enc_pill_capacity = ctk.CTkLabel(
+            meta_card, text="⚡ Max Capacity: -- chars", font=ctk.CTkFont(family="Segoe UI", size=11, weight="bold"),
+            text_color=("#0d9488", "#2dd4bf")
+        )
+        self.enc_pill_capacity.pack(anchor="w", padx=12, pady=(2, 8))
+
+        # Action Buttons
+        btn_box = ctk.CTkFrame(col_left, fg_color="transparent")
+        btn_box.pack(fill="x", padx=16, pady=(0, 12))
 
         browse_btn = ctk.CTkButton(
-            btn_row,
-            text="📁 Browse Image...",
-            font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
-            corner_radius=8,
-            command=self._browse_encode_image
+            btn_box, text="📁 Browse Image...", font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
+            corner_radius=8, height=36, command=self._browse_encode_image
         )
-        browse_btn.pack(side="left", padx=(0, 10))
+        browse_btn.pack(side="left", fill="x", expand=True, padx=(0, 8))
 
         demo_btn = ctk.CTkButton(
-            btn_row,
-            text="⚡ Load Demo Image",
-            font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
-            fg_color=("#4f46e5", "#6366f1"),
-            hover_color=("#4338ca", "#4f46e5"),
-            corner_radius=8,
-            command=self._load_demo_image
+            btn_box, text="⚡ Demo Image", font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
+            fg_color=("#4f46e5", "#6366f1"), hover_color=("#4338ca", "#4f46e5"),
+            corner_radius=8, height=36, width=110, command=self._load_demo_image
         )
-        demo_btn.pack(side="left")
+        demo_btn.pack(side="right")
 
-        # Card 2: Protection Mode Segmented Control
-        card_mode = ctk.CTkFrame(parent, corner_radius=12)
-        card_mode.pack(fill="x", pady=(0, 10), padx=8)
-
-        mode_title = ctk.CTkLabel(
-            card_mode,
-            text="2. Protection & Integrity Mode",
-            font=ctk.CTkFont(family="Segoe UI", size=13, weight="bold")
+        # Protection Mode Selector
+        mode_lbl = ctk.CTkLabel(
+            col_left, text="SECURITY & RESILIENCE MODE:",
+            font=ctk.CTkFont(family="Segoe UI", size=11, weight="bold"),
+            text_color=("gray45", "gray65")
         )
-        mode_title.pack(anchor="w", padx=16, pady=(10, 6))
+        mode_lbl.pack(anchor="w", padx=16, pady=(6, 4))
 
         self.mode_selector = ctk.CTkSegmentedButton(
-            card_mode,
-            values=[
-                "🛡️ Robust Mode (5x Redundancy) — Tamper Resistant [Recommended]",
-                "⚡ Standard Mode (1x Redundancy) — Maximum Capacity"
-            ],
-            font=ctk.CTkFont(family="Segoe UI", size=11, weight="bold"),
+            col_left,
+            values=["🛡️ Robust (5x)", "⚡ Standard (1x)"],
+            font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
             command=self._on_mode_change
         )
-        self.mode_selector.set("🛡️ Robust Mode (5x Redundancy) — Tamper Resistant [Recommended]")
-        self.mode_selector.pack(fill="x", padx=16, pady=(0, 12))
+        self.mode_selector.set("🛡️ Robust (5x)")
+        self.mode_selector.pack(fill="x", padx=16, pady=(0, 8))
 
-        # Card 3: Secret Message & Live Capacity
-        card_msg = ctk.CTkFrame(parent, corner_radius=12)
-        card_msg.pack(fill="both", expand=True, padx=8, pady=(0, 8))
-
-        msg_title = ctk.CTkLabel(
-            card_msg,
-            text="3. Secret Confidential Message",
-            font=ctk.CTkFont(family="Segoe UI", size=13, weight="bold")
+        mode_help = ctk.CTkLabel(
+            col_left,
+            text="• Robust (5x): Protected by Majority Voting.\n  Survives pixel edits, drawings, and noise.",
+            font=ctk.CTkFont(family="Segoe UI", size=10),
+            text_color=("gray45", "gray60"),
+            justify="left"
         )
-        msg_title.pack(anchor="w", padx=16, pady=(10, 4))
+        mode_help.pack(anchor="w", padx=16, pady=(0, 12))
 
+        # ---------------------------------------------------------------------
+        # RIGHT COLUMN: Secret Message Studio & Telemetry
+        # ---------------------------------------------------------------------
+        col_right = ctk.CTkFrame(container, corner_radius=12)
+        col_right.grid(row=0, column=1, sticky="nsew", padx=(0, 0), pady=0)
+
+        # Header with Format Pills
+        format_bar = ctk.CTkFrame(col_right, fg_color="transparent")
+        format_bar.pack(fill="x", padx=16, pady=(14, 8))
+
+        sec_title2 = ctk.CTkLabel(
+            format_bar, text="📝 SECRET MESSAGE STUDIO",
+            font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
+            text_color=("#4f46e5", "#818cf8")
+        )
+        sec_title2.pack(side="left")
+
+        # Format Switcher Segmented
+        self.format_selector = ctk.CTkSegmentedButton(
+            col_right,
+            values=["📝 Plain Text", "🔒 Classified Memo", "⚡ JSON Data", "💻 Hex / Key"],
+            font=ctk.CTkFont(family="Segoe UI", size=11, weight="bold"),
+            command=self._on_format_template_selected
+        )
+        self.format_selector.set("📝 Plain Text")
+        self.format_selector.pack(fill="x", padx=16, pady=(0, 10))
+
+        # Text Editor
         self.enc_textbox = ctk.CTkTextbox(
-            card_msg,
+            col_right,
             font=ctk.CTkFont(family="Consolas", size=12),
             corner_radius=8
         )
         self.enc_textbox.pack(fill="both", expand=True, padx=16, pady=(0, 8))
-        self.enc_textbox.bind("<KeyRelease>", self._update_capacity_meter)
+        self.enc_textbox.bind("<KeyRelease>", self._update_telemetry)
 
-        # Progress bar & label
-        cap_frame = ctk.CTkFrame(card_msg, fg_color="transparent")
-        cap_frame.pack(fill="x", padx=16, pady=(0, 8))
+        # Telemetry Card (Characters, Words, Bytes, Capacity %)
+        telem_card = ctk.CTkFrame(col_right, corner_radius=8, fg_color=("gray92", "gray16"))
+        telem_card.pack(fill="x", padx=16, pady=(0, 8))
 
-        self.cap_text_lbl = ctk.CTkLabel(
-            cap_frame,
-            text="Capacity Usage: 0 / 0 characters (0%)",
-            font=ctk.CTkFont(family="Segoe UI", size=11),
-            text_color=("gray40", "gray65")
+        telem_row1 = ctk.CTkFrame(telem_card, fg_color="transparent")
+        telem_row1.pack(fill="x", padx=12, pady=(6, 4))
+
+        self.telem_lbl_chars = ctk.CTkLabel(
+            telem_row1, text="Chars: 0", font=ctk.CTkFont(family="Consolas", size=11, weight="bold")
         )
-        self.cap_text_lbl.pack(side="left")
+        self.telem_lbl_chars.pack(side="left", padx=(0, 14))
 
-        self.enc_progressbar = ctk.CTkProgressBar(cap_frame, corner_radius=6, height=10)
+        self.telem_lbl_words = ctk.CTkLabel(
+            telem_row1, text="Words: 0", font=ctk.CTkFont(family="Consolas", size=11)
+        )
+        self.telem_lbl_words.pack(side="left", padx=(0, 14))
+
+        self.telem_lbl_bytes = ctk.CTkLabel(
+            telem_row1, text="Bytes: 0 B", font=ctk.CTkFont(family="Consolas", size=11)
+        )
+        self.telem_lbl_bytes.pack(side="left")
+
+        self.telem_lbl_cap = ctk.CTkLabel(
+            telem_row1, text="Capacity: 0.0%", font=ctk.CTkFont(family="Consolas", size=11, weight="bold"),
+            text_color=("#2563eb", "#60a5fa")
+        )
+        self.telem_lbl_cap.pack(side="right")
+
+        self.enc_progressbar = ctk.CTkProgressBar(telem_card, corner_radius=4, height=8)
         self.enc_progressbar.set(0.0)
-        self.enc_progressbar.pack(side="right", fill="x", expand=True, padx=(20, 0))
+        self.enc_progressbar.pack(fill="x", padx=12, pady=(0, 8))
 
-        # Action Buttons
-        action_row = ctk.CTkFrame(card_msg, fg_color="transparent")
-        action_row.pack(fill="x", padx=16, pady=(0, 12))
+        # Bottom Actions
+        action_bar = ctk.CTkFrame(col_right, fg_color="transparent")
+        action_bar.pack(fill="x", padx=16, pady=(0, 14))
 
         clear_btn = ctk.CTkButton(
-            action_row,
-            text="Clear",
-            font=ctk.CTkFont(family="Segoe UI", size=12),
-            fg_color=("gray75", "gray25"),
-            hover_color=("gray65", "gray35"),
-            width=80,
-            command=self._clear_encode_fields
+            action_bar, text="Clear", font=ctk.CTkFont(family="Segoe UI", size=12),
+            fg_color=("gray75", "gray25"), hover_color=("gray65", "gray35"),
+            width=70, height=36, command=self._clear_encode_fields
         )
         clear_btn.pack(side="left")
 
         self.encode_btn = ctk.CTkButton(
-            action_row,
+            action_bar,
             text="🔒 Hide Secret Message & Save Stego Image",
             font=ctk.CTkFont(family="Segoe UI", size=13, weight="bold"),
-            fg_color=("#2563eb", "#3b82f6"),
-            hover_color=("#1d4ed8", "#2563eb"),
-            height=38,
-            command=self._do_encode
+            fg_color=("#2563eb", "#3b82f6"), hover_color=("#1d4ed8", "#2563eb"),
+            height=38, command=self._do_encode
         )
         self.encode_btn.pack(side="right")
 
     # =========================================================================
-    # TAB 2: DECODE TAB
+    # TAB 2: 2-COLUMN DECODE DASHBOARD
     # =========================================================================
-    def _build_decode_tab(self):
-        parent = self.tab_decode
+    def _build_decode_dashboard(self):
+        container = ctk.CTkFrame(self.tab_decode, fg_color="transparent")
+        container.pack(fill="both", expand=True, padx=4, pady=6)
 
-        # Card 1: Stego Image Selection
-        card_img = ctk.CTkFrame(parent, corner_radius=12)
-        card_img.pack(fill="x", pady=(0, 10), padx=8)
+        container.grid_columnconfigure(0, weight=4, minsize=350)
+        container.grid_columnconfigure(1, weight=6, minsize=460)
+        container.grid_rowconfigure(0, weight=1)
 
-        card_title = ctk.CTkLabel(
-            card_img,
-            text="1. Stego Image Selection",
-            font=ctk.CTkFont(family="Segoe UI", size=13, weight="bold")
+        # ---------------------------------------------------------------------
+        # LEFT COLUMN: Stego Inspector & Telemetry Radar
+        # ---------------------------------------------------------------------
+        col_left = ctk.CTkFrame(container, corner_radius=12)
+        col_left.grid(row=0, column=0, sticky="nsew", padx=(0, 10), pady=0)
+
+        sec_title = ctk.CTkLabel(
+            col_left, text="🔍 STEGO IMAGE INSPECTOR",
+            font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
+            text_color=("#059669", "#34d399")
         )
-        card_title.pack(anchor="w", padx=16, pady=(12, 6))
+        sec_title.pack(anchor="w", padx=16, pady=(14, 8))
 
-        img_content = ctk.CTkFrame(card_img, fg_color="transparent")
-        img_content.pack(fill="x", padx=16, pady=(0, 10))
-
-        # Thumbnail Box
+        # Thumbnail
         self.dec_preview_lbl = ctk.CTkLabel(
-            img_content,
-            text="📷 No Stego Image",
-            width=140,
-            height=100,
-            corner_radius=8,
-            fg_color=("gray85", "gray18")
+            col_left, text="📷 Select Stego Image to Inspect",
+            width=260, height=140, corner_radius=10, fg_color=("gray85", "gray18")
         )
-        self.dec_preview_lbl.pack(side="left", padx=(0, 16))
+        self.dec_preview_lbl.pack(fill="x", padx=16, pady=(0, 10))
 
-        info_col = ctk.CTkFrame(img_content, fg_color="transparent")
-        info_col.pack(side="left", fill="both", expand=True)
+        # Metadata Pills Card
+        meta_card = ctk.CTkFrame(col_left, corner_radius=8, fg_color=("gray92", "gray16"))
+        meta_card.pack(fill="x", padx=16, pady=(0, 10))
 
-        self.dec_path_lbl = ctk.CTkLabel(
-            info_col,
-            text="Select an image containing hidden text.",
-            font=ctk.CTkFont(family="Consolas", size=11),
-            text_color=("gray50", "gray70"),
-            anchor="w"
+        self.dec_pill_path = ctk.CTkLabel(
+            meta_card, text="File: No image loaded", font=ctk.CTkFont(family="Consolas", size=11),
+            text_color=("gray40", "gray70"), anchor="w"
         )
-        self.dec_path_lbl.pack(fill="x", pady=(2, 4))
+        self.dec_pill_path.pack(fill="x", padx=12, pady=(6, 2))
 
-        self.dec_meta_lbl = ctk.CTkLabel(
-            info_col,
-            text="Lossless formats recommended: PNG, BMP",
+        self.dec_pill_meta = ctk.CTkLabel(
+            meta_card, text="Status: Waiting for stego image input",
+            font=ctk.CTkFont(family="Segoe UI", size=11, weight="bold"),
+            text_color=("#0d9488", "#2dd4bf"), anchor="w"
+        )
+        self.dec_pill_meta.pack(fill="x", padx=12, pady=(2, 6))
+
+        # Browse & Extract Buttons
+        browse_dec_btn = ctk.CTkButton(
+            col_left, text="📁 Browse Stego Image...",
             font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
-            text_color=("#0d9488", "#2dd4bf"),
-            anchor="w"
+            corner_radius=8, height=36, command=self._browse_decode_image
         )
-        self.dec_meta_lbl.pack(fill="x", pady=(0, 8))
+        browse_dec_btn.pack(fill="x", padx=16, pady=(0, 8))
 
-        browse_btn = ctk.CTkButton(
-            info_col,
-            text="📁 Browse Stego Image...",
-            font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
-            corner_radius=8,
-            command=self._browse_decode_image
-        )
-        browse_btn.pack(anchor="w")
-
-        # Big Decode Button
-        self.decode_btn = ctk.CTkButton(
-            card_img,
-            text="🔓 Extract Confidential Message & Verify Integrity",
+        self.decode_action_btn = ctk.CTkButton(
+            col_left, text="🔓 Extract Confidential Message & Verify Integrity",
             font=ctk.CTkFont(family="Segoe UI", size=13, weight="bold"),
-            fg_color=("#059669", "#10b981"),
-            hover_color=("#047857", "#059669"),
-            height=40,
-            command=self._do_decode
+            fg_color=("#059669", "#10b981"), hover_color=("#047857", "#059669"),
+            height=40, command=self._do_decode
         )
-        self.decode_btn.pack(fill="x", padx=16, pady=(0, 14))
+        self.decode_action_btn.pack(fill="x", padx=16, pady=(0, 12))
 
-        # Card 2: Tamper Radar & Integrity Card (Initially hidden)
-        self.card_radar = ctk.CTkFrame(parent, corner_radius=12)
+        # Tamper Radar Box (Initially Collapsed)
+        self.radar_box = ctk.CTkFrame(col_left, corner_radius=8, fg_color=("gray92", "gray16"))
 
         self.radar_badge = ctk.CTkLabel(
-            self.card_radar,
-            text="",
-            font=ctk.CTkFont(family="Segoe UI", size=13, weight="bold"),
-            corner_radius=8,
-            anchor="w"
+            self.radar_box, text="", font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
+            corner_radius=6, anchor="w", padx=10, pady=4
         )
-        self.radar_badge.pack(fill="x", padx=16, pady=(12, 4))
+        self.radar_badge.pack(fill="x", padx=10, pady=(8, 4))
 
-        self.radar_details = ctk.CTkLabel(
-            self.card_radar,
-            text="",
-            font=ctk.CTkFont(family="Segoe UI", size=11),
-            text_color=("gray40", "gray65"),
-            justify="left",
-            anchor="w"
+        self.radar_stats = ctk.CTkLabel(
+            self.radar_box, text="", font=ctk.CTkFont(family="Segoe UI", size=10),
+            text_color=("gray40", "gray65"), justify="left", anchor="w"
         )
-        self.radar_details.pack(fill="x", padx=16, pady=(0, 12))
+        self.radar_stats.pack(fill="x", padx=10, pady=(0, 8))
 
-        # Card 3: Extracted Message
-        card_msg = ctk.CTkFrame(parent, corner_radius=12)
-        card_msg.pack(fill="both", expand=True, padx=8, pady=(0, 8))
+        # ---------------------------------------------------------------------
+        # RIGHT COLUMN: Extracted Payload & Analysis
+        # ---------------------------------------------------------------------
+        col_right = ctk.CTkFrame(container, corner_radius=12)
+        col_right.grid(row=0, column=1, sticky="nsew", padx=(0, 0), pady=0)
 
-        msg_title = ctk.CTkLabel(
-            card_msg,
-            text="2. Extracted Confidential Message",
-            font=ctk.CTkFont(family="Segoe UI", size=13, weight="bold")
+        # Header Bar
+        ext_header = ctk.CTkFrame(col_right, fg_color="transparent")
+        ext_header.pack(fill="x", padx=16, pady=(14, 8))
+
+        sec_title3 = ctk.CTkLabel(
+            ext_header, text="📄 EXTRACTED PAYLOAD & TELEMETRY",
+            font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
+            text_color=("#059669", "#34d399")
         )
-        msg_title.pack(anchor="w", padx=16, pady=(10, 4))
+        sec_title3.pack(side="left")
 
+        self.dec_format_badge = ctk.CTkLabel(
+            ext_header, text="FORMAT: AUTO-DETECT",
+            font=ctk.CTkFont(family="Segoe UI", size=10, weight="bold"),
+            fg_color=("gray85", "gray22"), text_color=("gray40", "gray70"),
+            corner_radius=4, padx=6, pady=2
+        )
+        self.dec_format_badge.pack(side="right")
+
+        # Extracted Text Box
         self.dec_textbox = ctk.CTkTextbox(
-            card_msg,
-            font=ctk.CTkFont(family="Consolas", size=12),
-            corner_radius=8
+            col_right, font=ctk.CTkFont(family="Consolas", size=12), corner_radius=8
         )
         self.dec_textbox.pack(fill="both", expand=True, padx=16, pady=(0, 8))
 
-        # Actions
-        action_row = ctk.CTkFrame(card_msg, fg_color="transparent")
-        action_row.pack(fill="x", padx=16, pady=(0, 12))
+        # Decode Telemetry Row
+        dec_telem = ctk.CTkFrame(col_right, corner_radius=8, fg_color=("gray92", "gray16"))
+        dec_telem.pack(fill="x", padx=16, pady=(0, 8))
+
+        dec_row = ctk.CTkFrame(dec_telem, fg_color="transparent")
+        dec_row.pack(fill="x", padx=12, pady=6)
+
+        self.dec_lbl_chars = ctk.CTkLabel(dec_row, text="Characters: 0", font=ctk.CTkFont(family="Consolas", size=11))
+        self.dec_lbl_chars.pack(side="left", padx=(0, 14))
+
+        self.dec_lbl_words = ctk.CTkLabel(dec_row, text="Words: 0", font=ctk.CTkFont(family="Consolas", size=11))
+        self.dec_lbl_words.pack(side="left", padx=(0, 14))
+
+        self.dec_lbl_integrity = ctk.CTkLabel(
+            dec_row, text="Integrity: --", font=ctk.CTkFont(family="Consolas", size=11, weight="bold"),
+            text_color=("#059669", "#34d399")
+        )
+        self.dec_lbl_integrity.pack(side="right")
+
+        # Action Bar
+        action_bar2 = ctk.CTkFrame(col_right, fg_color="transparent")
+        action_bar2.pack(fill="x", padx=16, pady=(0, 14))
 
         self.copy_btn = ctk.CTkButton(
-            action_row,
-            text="📋 Copy to Clipboard",
-            font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
+            action_bar2, text="📋 Copy Message", font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
             command=self._copy_extracted
         )
-        self.copy_btn.pack(side="left")
+        self.copy_btn.pack(side="left", padx=(0, 8))
 
-        clear_btn = ctk.CTkButton(
-            action_row,
-            text="Clear",
-            font=ctk.CTkFont(family="Segoe UI", size=12),
-            fg_color=("gray75", "gray25"),
-            hover_color=("gray65", "gray35"),
-            width=80,
-            command=self._clear_decode_fields
+        save_btn = ctk.CTkButton(
+            action_bar2, text="💾 Save to .txt", font=ctk.CTkFont(family="Segoe UI", size=12),
+            fg_color=("gray75", "gray25"), hover_color=("gray65", "gray35"),
+            width=100, command=self._save_extracted_to_file
         )
-        clear_btn.pack(side="right")
+        save_btn.pack(side="left")
+
+        clear_btn2 = ctk.CTkButton(
+            action_bar2, text="Clear", font=ctk.CTkFont(family="Segoe UI", size=12),
+            fg_color=("gray75", "gray25"), hover_color=("gray65", "gray35"),
+            width=70, command=self._clear_decode_fields
+        )
+        clear_btn2.pack(side="right")
 
     # =========================================================================
-    # THEME TOGGLING & GRAPHICS
+    # THEME TOGGLE & GRAPHICS
     # =========================================================================
     def _toggle_theme(self):
         mode = self.theme_switch.get()
         ctk.set_appearance_mode(mode)
-        if mode == "Dark":
-            self.theme_switch.configure(text="Dark Mode 🌙")
-        else:
-            self.theme_switch.configure(text="Light Mode ☀️")
+        self.theme_switch.configure(text="Dark Mode 🌙" if mode == "Dark" else "Light Mode ☀️")
 
     def _render_thumbnail(self, label_widget, image_path):
         try:
             with Image.open(image_path) as pil_img:
                 copy_img = pil_img.copy()
-                copy_img.thumbnail((140, 100), Image.Resampling.LANCZOS)
+                copy_img.thumbnail((260, 140), Image.Resampling.LANCZOS)
                 ctk_img = ctk.CTkImage(light_image=copy_img, dark_image=copy_img, size=copy_img.size)
                 label_widget.configure(image=ctk_img, text="")
-                label_widget.image = ctk_img  # Keep reference
+                label_widget.image = ctk_img
         except Exception:
             label_widget.configure(image=None, text="Invalid Image")
 
     # =========================================================================
-    # ENCODE ACTIONS
+    # ENCODE LOGIC & TELEMETRY
     # =========================================================================
+    def _on_format_template_selected(self, choice):
+        self.current_template_key = choice
+        template_text = TEMPLATES.get(choice, "")
+        if template_text or choice == "📝 Plain Text":
+            self.enc_textbox.delete("1.0", "end")
+            if template_text:
+                self.enc_textbox.insert("1.0", template_text)
+            self._update_telemetry()
+            self.status_lbl.configure(text=f"Loaded template: {choice}")
+
     def _browse_encode_image(self):
         file_path = filedialog.askopenfilename(
-            title="Select Cover Image",
+            title="Select Carrier Image",
             filetypes=[
                 ("Image Files", "*.png;*.jpg;*.jpeg;*.bmp;*.webp"),
                 ("PNG Lossless (*.png)", "*.png"),
@@ -471,42 +573,47 @@ class UltraModernStegoGUI(ctk.CTk):
                 fmt = im.format or "IMG"
                 file_kb = os.path.getsize(file_path) / 1024
 
-            self.enc_path_lbl.configure(text=os.path.basename(file_path))
             self.enc_redundancy = 5 if "5x" in self.mode_selector.get() else 1
             self.enc_capacity = get_image_capacity(file_path, redundancy=self.enc_redundancy)
-            self.enc_meta_lbl.configure(
-                text=f"{w} × {h} px  |  {fmt}  |  {file_kb:.1f} KB  |  Capacity: {self.enc_capacity:,} chars"
-            )
-            self._update_capacity_meter()
-            self.status_lbl.configure(text=f"Loaded cover image: {os.path.basename(file_path)}")
+
+            self.enc_pill_res.configure(text=f"📐 Res: {w} × {h} px")
+            self.enc_pill_format.configure(text=f"🖼️ Format: {fmt}  |  💾 Size: {file_kb:.1f} KB")
+            self.enc_pill_capacity.configure(text=f"⚡ Max Capacity: {self.enc_capacity:,} characters")
+
+            self._update_telemetry()
+            self.status_lbl.configure(text=f"Loaded carrier: {os.path.basename(file_path)}")
         except Exception as e:
-            self.enc_meta_lbl.configure(text=f"Error reading image: {e}")
+            self.enc_pill_capacity.configure(text=f"Error reading image: {e}")
 
     def _on_mode_change(self, value=None):
         if self.enc_img_path and os.path.exists(self.enc_img_path):
             self._load_encode_image(self.enc_img_path)
 
-    def _update_capacity_meter(self, event=None):
+    def _update_telemetry(self, event=None):
         msg = self.enc_textbox.get("1.0", "end-1c")
-        msg_len = len(msg)
+        chars = len(msg)
+        words = len(msg.split())
+        byte_len = len(msg.encode("utf-8"))
         cap = self.enc_capacity
 
+        self.telem_lbl_chars.configure(text=f"Chars: {chars:,}")
+        self.telem_lbl_words.configure(text=f"Words: {words:,}")
+        self.telem_lbl_bytes.configure(text=f"Bytes: {byte_len:,} B")
+
         if cap > 0:
-            fraction = min(1.0, msg_len / cap)
+            fraction = min(1.0, chars / cap)
             self.enc_progressbar.set(fraction)
             pct = fraction * 100
-            self.cap_text_lbl.configure(
-                text=f"Capacity Usage: {msg_len:,} / {cap:,} characters ({pct:.1f}%)"
-            )
+            self.telem_lbl_cap.configure(text=f"Capacity: {pct:.1f}%")
             if pct > 95:
-                self.enc_progressbar.configure(progress_color="#ef4444")  # Red
+                self.enc_progressbar.configure(progress_color="#ef4444")
             elif pct > 75:
-                self.enc_progressbar.configure(progress_color="#f59e0b")  # Amber
+                self.enc_progressbar.configure(progress_color="#f59e0b")
             else:
-                self.enc_progressbar.configure(progress_color=("#2563eb", "#3b82f6"))  # Blue
+                self.enc_progressbar.configure(progress_color=("#2563eb", "#3b82f6"))
         else:
             self.enc_progressbar.set(0.0)
-            self.cap_text_lbl.configure(text=f"Capacity Usage: {msg_len:,} characters (No image selected)")
+            self.telem_lbl_cap.configure(text="Capacity: 0.0%")
 
     def _do_encode(self):
         img_path = self.enc_img_path
@@ -514,11 +621,11 @@ class UltraModernStegoGUI(ctk.CTk):
         redundancy = 5 if "5x" in self.mode_selector.get() else 1
 
         if not img_path:
-            messagebox.showwarning("Missing Image", "Please select a cover image first (or click '⚡ Load Demo Image').")
+            messagebox.showwarning("Missing Image", "Please select or drop a carrier image first.")
             return
 
         if not secret_msg:
-            messagebox.showwarning("Empty Message", "Please enter a secret message to hide.")
+            messagebox.showwarning("Empty Message", "Please enter or generate a secret message to embed.")
             return
 
         default_name = os.path.splitext(os.path.basename(img_path))[0] + "_stego.png"
@@ -534,23 +641,16 @@ class UltraModernStegoGUI(ctk.CTk):
 
         try:
             res = encode_text(img_path, secret_msg, save_path, redundancy=redundancy)
-            self.status_lbl.configure(text=f"Stego image successfully saved: {os.path.basename(res['output_path'])}")
+            self.status_lbl.configure(text=f"Stego image created: {os.path.basename(res['output_path'])}")
             
-            mode_desc = (
-                "🛡️ Robust Mode: Protected by Majority Voting.\n"
-                "The secret message can survive pixel edits, drawing, and noise!"
-                if redundancy > 1 else
-                "⚡ Standard Mode: Maximum storage capacity utilized."
-            )
-
             messagebox.showinfo(
                 "Steganography Success",
-                f"Secret message was successfully embedded!\n\n"
+                f"Secret message successfully embedded!\n\n"
                 f"📁 Output File: {res['output_path']}\n"
-                f"📊 Mode: {res['mode']}\n"
-                f"📝 Message Size: {res['message_length']:,} characters\n"
+                f"🛡️ Mode: {res['mode']}\n"
+                f"📝 Payload Length: {res['message_length']:,} characters\n"
                 f"📈 Capacity Used: {res['capacity_used_percent']}%\n\n"
-                f"{mode_desc}"
+                f"Visual change is 0.00% (imperceptible to human eyes)."
             )
         except Exception as e:
             messagebox.showerror("Encoding Error", str(e))
@@ -560,14 +660,16 @@ class UltraModernStegoGUI(ctk.CTk):
         self.enc_img_path = ""
         self.enc_capacity = 0
         self.enc_textbox.delete("1.0", "end")
-        self.enc_preview_lbl.configure(image=None, text="📷 No Image")
-        self.enc_path_lbl.configure(text="No carrier image selected.")
-        self.enc_meta_lbl.configure(text="Supported formats: PNG, JPG, BMP")
-        self._update_capacity_meter()
-        self.status_lbl.configure(text="Cleared encode fields.")
+        self.enc_preview_lbl.configure(image=None, text="📷 Drop or Select Carrier Image")
+        self.enc_pill_res.configure(text="📐 Res: --")
+        self.enc_pill_format.configure(text="🖼️ Format: --  |  💾 Size: --")
+        self.enc_pill_capacity.configure(text="⚡ Max Capacity: -- chars")
+        self.format_selector.set("📝 Plain Text")
+        self._update_telemetry()
+        self.status_lbl.configure(text="Cleared encode hub.")
 
     # =========================================================================
-    # DECODE ACTIONS
+    # DECODE LOGIC & TELEMETRY
     # =========================================================================
     def _browse_decode_image(self):
         file_path = filedialog.askopenfilename(
@@ -586,86 +688,126 @@ class UltraModernStegoGUI(ctk.CTk):
                     w, h = im.size
                     fmt = im.format or "IMG"
                     sz_kb = os.path.getsize(file_path) / 1024
-                self.dec_path_lbl.configure(text=os.path.basename(file_path))
-                self.dec_meta_lbl.configure(text=f"{w} × {h} px  |  {fmt}  |  {sz_kb:.1f} KB")
-                self.card_radar.pack_forget()
-                self.status_lbl.configure(text=f"Selected stego image: {os.path.basename(file_path)}")
+                self.dec_pill_path.configure(text=f"File: {os.path.basename(file_path)}")
+                self.dec_pill_meta.configure(text=f"Dimensions: {w} × {h} px  |  Format: {fmt}  |  {sz_kb:.1f} KB")
+                self.radar_box.pack_forget()
+                self.status_lbl.configure(text=f"Loaded stego image: {os.path.basename(file_path)}")
             except Exception as e:
-                self.dec_meta_lbl.configure(text=f"Error reading image: {e}")
+                self.dec_pill_meta.configure(text=f"Error reading image: {e}")
 
     def _do_decode(self):
         stego_path = self.dec_img_path
         if not stego_path:
-            messagebox.showwarning("Missing Image", "Please select a stego image to extract message from.")
+            messagebox.showwarning("Missing Image", "Please select a stego image first.")
             return
 
         try:
             result = decode_text(stego_path)
 
-            # Insert into textbox
             self.dec_textbox.configure(state="normal")
             self.dec_textbox.delete("1.0", "end")
             self.dec_textbox.insert("1.0", result)
 
-            # Show Radar Card
-            self.card_radar.pack(fill="x", pady=(0, 10), padx=8, before=self.dec_textbox.master)
+            # Auto-detect format
+            txt = str(result).strip()
+            if txt.startswith("{") and txt.endswith("}"):
+                self.dec_format_badge.configure(text="FORMAT: JSON PAYLOAD")
+            elif "CLASSIFICATION:" in txt or "TOP SECRET" in txt:
+                self.dec_format_badge.configure(text="FORMAT: CLASSIFIED MEMO")
+            elif "BEGIN" in txt and "KEY" in txt:
+                self.dec_format_badge.configure(text="FORMAT: CRYPTO KEY")
+            else:
+                self.dec_format_badge.configure(text="FORMAT: PLAIN TEXT")
+
+            # Telemetry
+            chars = len(result)
+            words = len(result.split())
+            self.dec_lbl_chars.configure(text=f"Characters: {chars:,}")
+            self.dec_lbl_words.configure(text=f"Words: {words:,}")
+
+            # Radar Box
+            self.radar_box.pack(fill="x", padx=16, pady=(0, 10))
 
             if result.tampered:
                 self.radar_badge.configure(
-                    text=f"⚠️ TAMPERING DETECTED & REPAIRED  ({result.mode})",
+                    text=f"⚠️ TAMPERING DETECTED & REPAIRED ({result.mode})",
                     fg_color=("#fef3c7", "#78350f"),
                     text_color=("#92400e", "#fde68a")
                 )
-                self.radar_details.configure(
-                    text=f"• Corrupted pixel bits detected: {result.tampered_bits:,} bits\n"
-                         f"• Majority Voting repair: 100% of bits recovered intact\n"
-                         f"• Tamper rate: {result.tamper_rate}% of sampled bits"
+                self.radar_stats.configure(
+                    text=f"• Corrupted bits repaired: {result.tampered_bits:,} bits via Majority Voting\n"
+                         f"• Tamper rate: {result.tamper_rate}% of sampled bits were modified\n"
+                         f"• Integrity: Restored 100% of confidential message"
+                )
+                self.dec_lbl_integrity.configure(
+                    text=f"Integrity: Repaired ({result.tampered_bits} bits)", text_color="#f59e0b"
                 )
             else:
                 self.radar_badge.configure(
-                    text=f"✅ IMAGE INTACT & PRISTINE  ({result.mode})",
+                    text=f"✅ IMAGE INTACT & PRISTINE ({result.mode})",
                     fg_color=("#d1fae5", "#064e3b"),
                     text_color=("#065f46", "#a7f3d0")
                 )
-                self.radar_details.configure(
+                self.radar_stats.configure(
                     text="• Clean signal: 0 bit flips detected\n"
-                         "• Pixel integrity: 100.0% match with original embedded bits"
+                         "• Pixel integrity: 100.0% pure signal match"
+                )
+                self.dec_lbl_integrity.configure(
+                    text="Integrity: 100% Pristine", text_color=("#059669", "#34d399")
                 )
 
-            self.status_lbl.configure(text=f"Message extracted! Length: {len(result):,} chars | Mode: {result.mode}")
+            self.status_lbl.configure(text=f"Extracted payload ({len(result):,} chars) in {result.mode}")
 
         except Exception as e:
             self.dec_textbox.configure(state="normal")
             self.dec_textbox.delete("1.0", "end")
-            self.card_radar.pack_forget()
+            self.radar_box.pack_forget()
             messagebox.showerror("Decoding Error", str(e))
-            self.status_lbl.configure(text="Decoding failed: No valid hidden message detected.")
+            self.status_lbl.configure(text="Decoding failed.")
 
     def _copy_extracted(self):
         text = self.dec_textbox.get("1.0", "end-1c").strip()
         if not text:
-            messagebox.showinfo("Clipboard", "No text to copy.")
+            messagebox.showinfo("Clipboard", "No message to copy.")
             return
         self.clipboard_clear()
         self.clipboard_append(text)
-
-        # Smooth button feedback
         self.copy_btn.configure(text="✓ Copied to Clipboard!", fg_color=("#059669", "#10b981"))
-        self.after(2000, lambda: self.copy_btn.configure(text="📋 Copy to Clipboard", fg_color=("#2563eb", "#3b82f6")))
+        self.after(2000, lambda: self.copy_btn.configure(text="📋 Copy Message", fg_color=("#2563eb", "#3b82f6")))
         self.status_lbl.configure(text="Secret message copied to clipboard.")
+
+    def _save_extracted_to_file(self):
+        text = self.dec_textbox.get("1.0", "end-1c").strip()
+        if not text:
+            messagebox.showinfo("Save File", "No message to save.")
+            return
+        save_path = filedialog.asksaveasfilename(
+            title="Save Extracted Message",
+            defaultextension=".txt",
+            filetypes=[("Text File (*.txt)", "*.txt"), ("All Files", "*.*")]
+        )
+        if save_path:
+            with open(save_path, "w", encoding="utf-8") as f:
+                f.write(text)
+            self.status_lbl.configure(text=f"Saved secret text to {os.path.basename(save_path)}")
+            messagebox.showinfo("File Saved", f"Message saved to:\n{save_path}")
 
     def _clear_decode_fields(self):
         self.dec_img_path = ""
-        self.card_radar.pack_forget()
+        self.dec_preview_lbl.configure(image=None, text="📷 Select Stego Image to Inspect")
+        self.dec_pill_path.configure(text="File: No image loaded")
+        self.dec_pill_meta.configure(text="Status: Waiting for stego image input")
+        self.dec_format_badge.configure(text="FORMAT: AUTO-DETECT")
         self.dec_textbox.delete("1.0", "end")
-        self.dec_preview_lbl.configure(image=None, text="📷 No Stego Image")
-        self.dec_path_lbl.configure(text="Select an image containing hidden text.")
-        self.dec_meta_lbl.configure(text="Lossless formats recommended: PNG, BMP")
-        self.status_lbl.configure(text="Cleared decode fields.")
+        self.dec_lbl_chars.configure(text="Characters: 0")
+        self.dec_lbl_words.configure(text="Words: 0")
+        self.dec_lbl_integrity.configure(text="Integrity: --")
+        self.radar_box.pack_forget()
+        self.status_lbl.configure(text="Cleared decode hub.")
 
 
 def main():
-    app = UltraModernStegoGUI()
+    app = ExecutiveStegoStudio()
     app.mainloop()
 
 

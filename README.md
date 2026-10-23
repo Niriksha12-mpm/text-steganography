@@ -1,6 +1,17 @@
-# TEXT STEGANOGRAPHY STUDIO (ROBUST LSB DATA HIDING)
+<div align="center">
 
-A complete, modern Python application for hiding confidential text messages inside digital images using **Least Significant Bit (LSB) Steganography**, featuring **Majority-Voting Error Correction**, **Tamper Detection**, a **Modern Desktop GUI**, and a **Streamlit Web Studio**.
+# 🔐 TEXT STEGANOGRAPHY STUDIO
+### Executive Robust LSB Data Hiding with Error Correction & Multi-Format Templates
+
+![Python Version](https://img.shields.io/badge/Python-3.8%2B-blue?logo=python)
+![UI Framework](https://img.shields.io/badge/GUI-CustomTkinter%20%7C%20Streamlit-6366f1)
+![Security Protocol](https://img.shields.io/badge/Security-5x%20Majority%20Voting-10b981)
+![Image Format](https://img.shields.io/badge/Format-Lossless%20PNG%20%2F%20BMP-f59e0b)
+![License](https://img.shields.io/badge/License-MIT-gray)
+
+**A next-generation steganography suite featuring a 2-Column Executive Dashboard, real-time telemetry, multi-format payload templates, and majority-voting error correction to withstand pixel tampering.**
+
+</div>
 
 ---
 
@@ -20,27 +31,44 @@ This project demonstrates the practical application of steganography in informat
 
 ---
 
-## 🎨 UI/UX Features & Interfaces
+## 🌟 Executive 2-Column Dashboard Layout
 
-### 1. Modern Desktop GUI (`gui.py`)
-- **Card-Based Interface**: Clean card containers with subtle borders and clear visual hierarchy.
-- **Live Thumbnail Previews**: Real-time canvas preview of selected cover and stego images with aspect ratio preservation.
-- **Dynamic Capacity Meter & Progress Bar**: Real-time visual progress bar tracking capacity utilization as you type.
-- **1-Click "Load Demo Image"**: Instant sample image loader for fast demonstrations during reviews and viva exams.
-- **Interactive Tamper Radar**: Visual health card in the Decode tab displaying:
-  - 🟢 **Pristine**: 0 bit flips detected.
-  - 🟡 **Tampered & Repaired**: Exact count of corrupted bits repaired by Majority Voting + Tamper Rate percentage.
-- **Interactive Copy Feedback**: "✓ Copied to Clipboard!" animated confirmation button.
+```text
++----------------------------------------------------------------------------------------------------+
+|  🔐 TEXT STEGANOGRAPHY STUDIO [v2.5 PRO]                                       🌙 Dark / ☀️ Light  |
++----------------------------------------------------------------------------------------------------+
+|  [ 🔒 HIDE MESSAGE (ENCODE HUB) ]                    [ 🔓 EXTRACT MESSAGE (DECODE HUB) ]           |
+|                                                                                                    |
+|  LEFT PANEL: CARRIER IMAGE & ENGINE HUB          RIGHT PANEL: SECRET MESSAGE STUDIO                |
+|  +--------------------------------------------+  +-----------------------------------------------+ |
+|  | [📷 Live High-DPI Thumbnail Preview]       |  | FORMAT: [ Plain Text | Memo | JSON | Key ]   | |
+|  |                                            |  |                                               | |
+|  | 📐 Res: 800 x 600 px  | 💾 Size: 142.5 KB   |  | Monospace Payload Editor (JetBrains Mono)     | |
+|  | 🖼️ Format: Lossless PNG                     |  | "CLASSIFICATION: TOP SECRET..."               | |
+|  |                                            |  |                                               | |
+|  | [📁 Browse Image...]   [⚡ Demo Image]     |  | --------------------------------------------- | |
+|  |                                            |  | Telemetry: 142 Chars | 22 Words | 142 Bytes    | |
+|  | SECURITY MODE:                             |  | Capacity Progress: [=============>        ]   | |
+|  | [ 🛡️ Robust (5x) ]   [ ⚡ Standard (1x) ]   |  |                                               | |
+|  +--------------------------------------------+  | [ Clear ]    [ 🔒 Hide Message & Save Stego ] | |
+|                                                  +-----------------------------------------------+ |
++----------------------------------------------------------------------------------------------------+
+|  Ready. System Online.                                                                             |
++----------------------------------------------------------------------------------------------------+
+```
 
-### 2. Companion Web Studio (`app_web.py`)
-- Browser-based interface powered by **Streamlit**.
-- Drag-and-drop file uploaders for cover and stego images.
-- Side-by-side comparison metrics.
-- 1-click **Download Stego Image** button.
-- Educational interactive tabs explaining LSB theory.
+---
 
-### 3. Interactive CLI (`cli.py`)
-- Terminal menu for lightweight headless environments.
+## 📝 Multi-Format Text Templates
+
+The studio includes built-in structured format templates:
+
+| Format Mode | Purpose | Sample Structure |
+|---|---|---|
+| **📝 Plain Text** | General confidential messages | Clean raw text with live word/byte telemetry. |
+| **🔒 Classified Memo** | Intelligence / Defense transmission | Classification level, timestamp, clearance tier, and body. |
+| **⚡ JSON Data** | Structured credentials & tokens | Formatted JSON with syntax validation and auto-indent. |
+| **💻 Hex / Key** | Cryptographic token / key exchange | Formatted cryptographic key blocks with hash fingerprints. |
 
 ---
 
@@ -62,16 +90,16 @@ To make the secret message resilient to pixel changes:
 
 ---
 
-## 📁 Project Structure
+## 📁 Project Architecture
 
 ```text
 text-steganography/
 │
 ├── stego_core.py            # Core algorithms (Standard & Robust 5x LSB with Majority Voting)
-├── gui.py                   # Modern Desktop GUI (Card layout, live thumbnails, dynamic capacity)
-├── app_web.py               # Modern Streamlit Web Studio (Drag-and-drop, browser interface)
+├── gui.py                   # Executive 2-Column Dashboard GUI (CustomTkinter, multi-format templates)
+├── app_web.py               # Glassmorphic Web Studio (Streamlit, 2-column layout, download tools)
 ├── cli.py                   # Interactive Command-Line Interface (terminal menu)
-├── main.py                  # Main entry point (Desktop GUI, --web, --cli)
+├── main.py                  # Main unified entry point (Desktop GUI, --web, --cli)
 ├── sample_test.py           # Automated test suite (including deliberate pixel tampering test)
 ├── sample_carrier.png       # Sample cover image
 ├── sample_stego_robust.png  # Stego image with 5x redundant embedding
@@ -83,34 +111,63 @@ text-steganography/
 
 ## ⚙️ Installation & Requirements
 
-The project requires **Python 3.8+**, **Pillow**, and **Streamlit**:
+The project runs on **Python 3.8+** with the following packages:
 
 ```bash
-pip install pillow streamlit
+pip install pillow customtkinter streamlit
 ```
 
 ---
 
-## 🚀 How to Run the Project
+## 🚀 How to Run
 
-### Option 1: Modern Desktop GUI (Default)
+### 1. Executive Desktop GUI (Default)
 ```bash
 python main.py
 ```
 *(or `python gui.py`)*
 
-### Option 2: Modern Web Application (Browser)
+### 2. Browser-Based Web Studio
 ```bash
 python main.py --web
 ```
 *(or `streamlit run app_web.py`)*
 
-### Option 3: Command-Line Interface (CLI)
+### 3. Interactive CLI
 ```bash
 python main.py --cli
 ```
 
-### Option 4: Run the Verification Script (with Tamper Test)
+### 4. Automated Tamper-Resilience Verification Test
 ```bash
 python sample_test.py
+```
+
+Expected test result:
+```text
+======================================================================
+   RUNNING TEXT STEGANOGRAPHY VERIFICATION & TAMPER-RESILIENCE TESTS
+======================================================================
+[STEP 1] Generating sample carrier image (250x250 pixels)...
+[STEP 2] Testing Standard Mode (1x)... [PASS]
+[STEP 3] Testing Robust Mode (5x) with DELIBERATE PIXEL TAMPERING...
+ -> Deliberately corrupting pixels (drawing solid box over embedded bits)...
+ -> Tampered image saved to sample_stego_tampered.png
+ -> Decoding message from the heavily tampered image...
+
+-----------------------------------------------------------------
+RECOVERED MESSAGE FROM TAMPERED IMAGE:
+-----------------------------------------------------------------
+CONFIDENTIAL TRANSMISSION
+Project: Text Steganography via LSB
+Status: Success!
+Security Clearance: Top Secret
+This message must survive pixel tampering!
+-----------------------------------------------------------------
+
+[VERIFICATION PASSED] Message retrieved 100% intact despite pixel damage!
+ -> Tamper Detector: SUCCESSFULLY DETECTED!
+ -> Bits Corrected:  272 corrupted bits repaired via Majority Voting.
+ -> Tamper Rate:     4.25%
+======================================================================
 ```

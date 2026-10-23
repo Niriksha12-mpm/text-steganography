@@ -1,33 +1,65 @@
 """
 Ultra-Modern Web Studio for Text Steganography
 ----------------------------------------------
-Built with Streamlit for a fast, responsive, browser-based UI/UX.
 Features:
-- Glassmorphic hero header with glowing typography
-- Drag-and-drop image upload zones with instant thumbnail rendering
-- Live capacity calculations & dynamic progress gauges
-- Side-by-side original vs stego image comparison
-- One-click stego image download button (.png)
-- Interactive Tamper Radar on extraction with Majority Voting breakdown
-- Educational walkthrough of LSB substitution & majority voting
+- Executive 2-Column layout with glassmorphic cards
+- Multi-Format Templates (Plain Text, Classified Memo, JSON Payload, Crypto Key)
+- Live word, byte, and character telemetry with dynamic capacity progress gauge
+- Side-by-side original vs stego inspection
+- One-click downloads for stego PNG and extracted TXT
+- Visual Tamper Radar with Majority Voting metrics
 """
 
 import streamlit as st
-from PIL import Image, ImageChops
-import io
+from PIL import Image
 import os
 import tempfile
+import json
+from datetime import datetime
 from stego_core import encode_text, decode_text, get_image_capacity
 
 # Configure Page
 st.set_page_config(
-    page_title="Text Steganography Studio",
+    page_title="Text Steganography Studio — Executive Web Dashboard",
     page_icon="🔐",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Ultra-Modern CSS Styling
+# Template Formats
+TEMPLATES = {
+    "📝 Plain Text": "",
+    "🔒 Classified Memo": (
+        "=====================================================\n"
+        "CLASSIFICATION: TOP SECRET // STRICTLY CONFIDENTIAL\n"
+        f"TIMESTAMP:      {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+        "CLEARANCE:      LEVEL 5 (EYES ONLY)\n"
+        "SUBJECT:        Operation Quantum Cipher\n"
+        "=====================================================\n\n"
+        "TRANSMISSION BODY:\n"
+        "The encrypted rendezvous point has been established.\n"
+        "All secondary channels are secured. Proceed with plan."
+    ),
+    "⚡ JSON Data": json.dumps({
+        "protocol": "STEGO-LSB-ROBUST",
+        "version": "2.5",
+        "classification": "TOP-SECRET",
+        "credentials": {
+            "token": "sec_88f9c104e12",
+            "access_tier": "LEVEL_5"
+        },
+        "relays": ["node-alpha", "node-bravo"]
+    }, indent=2),
+    "💻 Hex / Key": (
+        "--- BEGIN STEGANOGRAPHIC ACCESS KEY ---\n"
+        "KEY_ID:   0x8F9A4B2C_0019A\n"
+        "HASH:     e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\n"
+        "ENDPOINT: sftp://vault.secure.internal:8088\n"
+        "--- END STEGANOGRAPHIC ACCESS KEY ---"
+    )
+}
+
+# Ultra-Modern CSS
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
@@ -41,13 +73,13 @@ st.markdown("""
         border: 1px solid rgba(255, 255, 255, 0.1);
         box-shadow: 0 10px 30px -10px rgba(79, 70, 229, 0.3);
         border-radius: 16px;
-        padding: 28px 32px;
+        padding: 24px 32px;
         color: white;
-        margin-bottom: 24px;
+        margin-bottom: 20px;
     }
     
     .hero-title {
-        font-size: 30px;
+        font-size: 28px;
         font-weight: 800;
         letter-spacing: -0.5px;
         margin: 0;
@@ -58,16 +90,8 @@ st.markdown("""
     
     .hero-subtitle {
         color: #94a3b8;
-        font-size: 14px;
-        margin-top: 6px;
-    }
-    
-    .glass-card {
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 12px;
-        padding: 20px;
-        margin-bottom: 16px;
+        font-size: 13px;
+        margin-top: 4px;
     }
     
     .badge-intact {
@@ -89,30 +113,39 @@ st.markdown("""
         font-weight: 600;
         margin-bottom: 14px;
     }
+    
+    .telemetry-badge {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 12px;
+    }
 </style>
 """, unsafe_allow_html=True)
 
-# Top Hero Banner
+# Top Banner
 st.markdown("""
 <div class="hero-banner">
-    <div class="hero-title">🔐 Text Steganography Studio</div>
+    <div class="hero-title">🔐 Text Steganography Studio — Executive Dashboard</div>
     <div class="hero-subtitle">
-        Next-Generation LSB Digital Image Steganography with Majority-Voting Error Correction & Tamper Detection
+        Spatial LSB Steganography • 5x Majority-Voting Error Correction • Multi-Format Payload Templates
     </div>
 </div>
 """, unsafe_allow_html=True)
 
 # Sidebar
 with st.sidebar:
-    st.markdown("### ⚙️ Engine Specs")
-    st.info("💡 **Lossless Notice**: Steganographic data relies on exact pixel bit values. Always download & transmit images as **PNG**.")
+    st.markdown("### ⚙️ Engine Telemetry")
+    st.info("💡 **Format Rule**: Steganographic data relies on exact spatial pixel bits. Always preserve images as lossless **PNG** or **BMP**.")
     
     st.markdown("---")
-    st.markdown("#### 🔬 Technical Highlights")
-    st.markdown("- **Domain**: Spatial RGB Pixel LSBs")
-    st.markdown("- **Resilience**: 5x Block-Interleaved Majority Voting")
-    st.markdown("- **Delimiter**: 64-bit protected binary header")
-    st.markdown("- **Perception**: $\\Delta E \\approx 0.0$ (Indistinguishable)")
+    st.markdown("#### 🔬 Technical Architecture")
+    st.markdown("- **Algorithm**: Spatial LSB substitution")
+    st.markdown("- **Fault Tolerance**: 5x Block-Interleaved Majority Voting")
+    st.markdown("- **Header**: 64-bit protected binary header")
+    st.markdown("- **Perceptibility**: $\\Delta E \\approx 0.0$ (Zero visual difference)")
     
     st.markdown("---")
     st.markdown("#### ⚡ Quick Demo Sample")
@@ -128,44 +161,48 @@ with st.sidebar:
 
 # Main Tabs
 tab_encode, tab_decode, tab_about = st.tabs([
-    "🔒  Hide Message (Encode)",
-    "🔓  Extract Message (Decode)",
+    "🔒  Hide Message (Encode Hub)",
+    "🔓  Extract Message (Decode Hub)",
     "📘  How It Works & Theory"
 ])
 
 # =============================================================================
-# TAB 1: ENCODE
+# TAB 1: ENCODE DASHBOARD
 # =============================================================================
 with tab_encode:
-    st.markdown("#### 1. Upload Carrier Image")
-    uploaded_file = st.file_uploader(
-        "Choose an image to serve as the carrier",
-        type=["png", "jpg", "jpeg", "bmp"],
-        key="uploader_encode"
-    )
+    col_left, col_right = st.columns([4, 6])
 
-    if uploaded_file:
-        col_img, col_settings = st.columns([1, 1.2])
+    # Left Column: Image & Security Hub
+    with col_left:
+        st.markdown("##### 📸 Carrier Image & Engine Hub")
+        uploaded_file = st.file_uploader(
+            "Select or drop carrier image",
+            type=["png", "jpg", "jpeg", "bmp"],
+            key="uploader_encode"
+        )
 
-        with col_img:
+        image = None
+        capacity = 0
+        w, h = 0, 0
+        file_kb = 0
+
+        if uploaded_file:
             image = Image.open(uploaded_file).convert("RGB")
-            st.image(image, caption="Carrier Image Preview", use_container_width=True)
+            st.image(image, caption="Carrier Thumbnail", use_container_width=True)
             w, h = image.size
             file_kb = uploaded_file.size / 1024
 
-        with col_settings:
-            # Mode selection
-            mode_choice = st.radio(
-                "Protection & Integrity Mode:",
-                options=[
-                    "🛡️ Robust Mode (5x Redundancy) — Resilient to pixel edits & noise via Majority Voting [Recommended]",
-                    "⚡ Standard Mode (1x Redundancy) — Maximum Capacity"
-                ],
-                index=0
-            )
-            redundancy = 5 if "5x" in mode_choice else 1
+        mode_choice = st.radio(
+            "Security & Resilience Mode:",
+            options=[
+                "🛡️ Robust Mode (5x) — Recommended (Survives pixel edits & noise)",
+                "⚡ Standard Mode (1x) — Maximum Capacity"
+            ],
+            index=0
+        )
+        redundancy = 5 if "5x" in mode_choice else 1
 
-            # Temp file for capacity calculation
+        if image:
             with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp:
                 image.save(tmp.name, format="PNG")
                 tmp_cover_path = tmp.name
@@ -175,84 +212,111 @@ with tab_encode:
             except Exception:
                 capacity = 0
 
-            # Metrics Row
             m1, m2, m3 = st.columns(3)
-            m1.metric("Dimensions", f"{w} × {h} px")
-            m2.metric("File Size", f"{file_kb:.1f} KB")
-            m3.metric("Capacity", f"{capacity:,} chars")
+            m1.metric("Dimensions", f"{w}×{h} px")
+            m2.metric("Size", f"{file_kb:.1f} KB")
+            m3.metric("Capacity", f"{capacity:,} c")
+        else:
+            st.info("Upload an image to inspect capacity.")
 
-            st.markdown("---")
-            st.markdown("#### 2. Enter Secret Message")
-            secret_input = st.text_area(
-                "Secret Confidential Text:",
-                height=130,
-                placeholder="Type your sensitive confidential message here..."
-            )
+    # Right Column: Secret Message Studio & Telemetry
+    with col_right:
+        st.markdown("##### 📝 Secret Message Studio")
 
-            # Capacity Progress
-            msg_len = len(secret_input)
-            if capacity > 0:
-                pct = min(1.0, msg_len / capacity)
-                st.progress(pct, text=f"Storage Utilization: {msg_len:,} / {capacity:,} characters ({pct*100:.1f}%)")
+        # Format Template Selector
+        format_choice = st.selectbox(
+            "Message Format Template:",
+            options=["📝 Plain Text", "🔒 Classified Memo", "⚡ JSON Data", "💻 Hex / Key"],
+            index=0
+        )
+
+        # Pre-fill with template if selected
+        default_val = TEMPLATES.get(format_choice, "")
+
+        secret_input = st.text_area(
+            "Confidential Payload:",
+            value=default_val,
+            height=240,
+            placeholder="Type your sensitive confidential payload here..."
+        )
+
+        # Telemetry
+        chars = len(secret_input)
+        words = len(secret_input.split())
+        bytes_len = len(secret_input.encode("utf-8"))
+
+        t_col1, t_col2, t_col3, t_col4 = st.columns(4)
+        t_col1.markdown(f"**Chars**: `{chars:,}`")
+        t_col2.markdown(f"**Words**: `{words:,}`")
+        t_col3.markdown(f"**Bytes**: `{bytes_len:,} B`")
+
+        if capacity > 0:
+            pct = min(1.0, chars / capacity)
+            t_col4.markdown(f"**Usage**: `{pct*100:.1f}%`")
+            st.progress(pct)
+        else:
+            t_col4.markdown("**Usage**: `0.0%`")
+            st.progress(0.0)
+
+        # Action Button
+        if st.button("🔒 Embed Secret Payload & Generate Stego Image", type="primary", use_container_width=True):
+            if not image:
+                st.error("Please upload a carrier image first.")
+            elif not secret_input.strip():
+                st.error("Please enter a message to hide.")
             else:
-                st.warning("Image capacity is too small.")
+                try:
+                    with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as out_tmp:
+                        out_stego_path = out_tmp.name
 
-            # Action button
-            if st.button("🔒 Embed Message & Generate Stego Image", type="primary", use_container_width=True):
-                if not secret_input.strip():
-                    st.error("Please enter a message to hide.")
-                else:
-                    try:
-                        with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as out_tmp:
-                            out_stego_path = out_tmp.name
+                    res = encode_text(tmp_cover_path, secret_input, out_stego_path, redundancy=redundancy)
+                    st.success(f"✅ Secret message successfully embedded in **{res['mode']}** mode!")
 
-                        res = encode_text(tmp_cover_path, secret_input, out_stego_path, redundancy=redundancy)
-                        st.success(f"✅ Message successfully embedded in **{res['mode']}** mode!")
+                    with open(out_stego_path, "rb") as f:
+                        stego_bytes = f.read()
 
-                        # Download button
-                        with open(out_stego_path, "rb") as f:
-                            stego_bytes = f.read()
+                    st.download_button(
+                        label="⬇️ Download Stego Image (.png)",
+                        data=stego_bytes,
+                        file_name="stego_image.png",
+                        mime="image/png",
+                        type="primary",
+                        use_container_width=True
+                    )
+                    os.unlink(out_stego_path)
 
-                        st.download_button(
-                            label="⬇️ Download Stego Image (.png)",
-                            data=stego_bytes,
-                            file_name="stego_image.png",
-                            mime="image/png",
-                            type="primary",
-                            use_container_width=True
-                        )
+                except Exception as e:
+                    st.error(f"Encoding failed: {e}")
 
-                        # Clean up
-                        os.unlink(out_stego_path)
-
-                    except Exception as e:
-                        st.error(f"Encoding failed: {e}")
-
-            # Clean up cover temp
-            if os.path.exists(tmp_cover_path):
-                os.unlink(tmp_cover_path)
-    else:
-        st.info("👆 Upload an image above to start hiding messages.")
+        if image and os.path.exists(tmp_cover_path):
+            os.unlink(tmp_cover_path)
 
 # =============================================================================
-# TAB 2: DECODE
+# TAB 2: DECODE DASHBOARD
 # =============================================================================
 with tab_decode:
-    st.markdown("#### 1. Upload Stego Image")
-    stego_upload = st.file_uploader(
-        "Upload an image containing embedded text (PNG, BMP)",
-        type=["png", "bmp"],
-        key="uploader_decode"
-    )
+    d_col1, d_col2 = st.columns([4, 6])
 
-    if stego_upload:
-        col_stego_img, col_extract = st.columns([1, 1.2])
+    with d_col1:
+        st.markdown("##### 🔍 Stego Image Inspector")
+        stego_upload = st.file_uploader(
+            "Select stego image containing hidden text",
+            type=["png", "bmp"],
+            key="uploader_decode"
+        )
 
-        with col_stego_img:
+        stego_img = None
+        if stego_upload:
             stego_img = Image.open(stego_upload).convert("RGB")
-            st.image(stego_img, caption="Stego Image Preview", use_container_width=True)
+            st.image(stego_img, caption="Stego Thumbnail", use_container_width=True)
+            sw, sh = stego_img.size
+            s_kb = stego_upload.size / 1024
+            st.caption(f"📐 {sw}×{sh} px  |  🖼️ Lossless PNG  |  💾 {s_kb:.1f} KB")
 
-        with col_extract:
+    with d_col2:
+        st.markdown("##### 📄 Extracted Payload & Telemetry")
+
+        if stego_img:
             if st.button("🔓 Extract Secret Message & Verify Integrity", type="primary", use_container_width=True):
                 with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp_s:
                     stego_img.save(tmp_s.name, format="PNG")
@@ -261,7 +325,20 @@ with tab_decode:
                 try:
                     res = decode_text(tmp_stego_path)
 
-                    # Integrity Card
+                    # Format auto-detection
+                    txt = str(res).strip()
+                    if txt.startswith("{") and txt.endswith("}"):
+                        fmt_badge = "JSON PAYLOAD"
+                    elif "CLASSIFICATION:" in txt or "TOP SECRET" in txt:
+                        fmt_badge = "CLASSIFIED MEMO"
+                    elif "BEGIN" in txt and "KEY" in txt:
+                        fmt_badge = "CRYPTO KEY"
+                    else:
+                        fmt_badge = "PLAIN TEXT"
+
+                    st.markdown(f"**Detected Format**: `{fmt_badge}`")
+
+                    # Tamper Radar Card
                     if res.tampered:
                         st.markdown(f"""
                         <div class="badge-tampered">
@@ -283,14 +360,17 @@ with tab_decode:
                     st.text_area(
                         "Extracted Confidential Message:",
                         value=res,
-                        height=160
+                        height=220
                     )
 
-                    st.download_button(
+                    c1, c2 = st.columns(2)
+                    c1.markdown(f"**Chars**: `{len(res):,}`  |  **Words**: `{len(res.split()):,}`")
+                    c2.download_button(
                         label="📄 Download Extracted Message (.txt)",
                         data=res,
                         file_name="secret_message.txt",
-                        mime="text/plain"
+                        mime="text/plain",
+                        use_container_width=True
                     )
 
                 except Exception as e:
@@ -299,9 +379,11 @@ with tab_decode:
                 finally:
                     if os.path.exists(tmp_stego_path):
                         os.unlink(tmp_stego_path)
+        else:
+            st.info("Upload a stego image on the left to extract hidden payloads.")
 
 # =============================================================================
-# TAB 3: THEORY & HOW IT WORKS
+# TAB 3: HOW IT WORKS
 # =============================================================================
 with tab_about:
     st.markdown("### 🧠 How Spatial LSB Steganography Works")
