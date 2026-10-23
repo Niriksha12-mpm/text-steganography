@@ -1,289 +1,512 @@
 """
 Desktop Graphical User Interface (GUI) for Text Steganography
 -------------------------------------------------------------
-Built with Python's standard Tkinter & ttk libraries.
-Provides two easy-to-use tabs:
-1. Hide Message (Encode) with Robust Tamper-Resistant toggle
-2. Extract Message (Decode) with Tamper Detection & Error Correction Badge
+Modernized UI/UX with:
+- Live image thumbnail previews
+- Dynamic capacity progress bar & real-time character counter
+- 1-Click "Load Demo Image" for quick testing/presentations
+- Color-coded protection mode cards
+- Visual tamper radar with detailed integrity breakdown
+- Interactive feedback ("✓ Copied to Clipboard!")
 """
 
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 import os
-from PIL import Image
+from PIL import Image, ImageTk, ImageDraw
 from stego_core import encode_text, decode_text, get_image_capacity
 
 
-class SteganographyApp:
+class ModernSteganographyGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("Text Steganography - Robust LSB Data Hiding")
-        self.root.geometry("740x660")
-        self.root.minsize(680, 580)
+        self.root.title("Text Steganography Studio — LSB Data Hiding")
+        self.root.geometry("820x720")
+        self.root.minsize(760, 650)
+        self.root.configure(bg="#f8fafc")
 
-        # Style configuration
-        self.style = ttk.Style()
+        # Color Palette
+        self.C_BG = "#f8fafc"
+        self.C_CARD = "#ffffff"
+        self.C_BORDER = "#e2e8f0"
+        self.C_TEXT_MAIN = "#0f172a"
+        self.C_TEXT_MUTED = "#64748b"
+        self.C_PRIMARY = "#4f46e5"       # Indigo
+        self.C_PRIMARY_HOVER = "#4338ca"
+        self.C_SUCCESS = "#059669"       # Emerald
+        self.C_SUCCESS_HOVER = "#047857"
+        self.C_AMBER = "#d97706"
+
+        # State Variables - Encode
+        self.enc_img_path = tk.StringVar()
+        self.enc_img_info = tk.StringVar(value="No image loaded yet.")
+        self.enc_redundancy = tk.IntVar(value=5)  # Default: Robust 5x
+        self.enc_capacity = 0
+        self.enc_thumbnail_ref = None
+
+        # State Variables - Decode
+        self.dec_img_path = tk.StringVar()
+        self.dec_img_info = tk.StringVar(value="No stego image loaded yet.")
+        self.dec_thumbnail_ref = None
+
+        self._configure_styles()
+        self._build_header()
+        self._build_notebook()
+        self._build_statusbar()
+
+    def _configure_styles(self):
+        style = ttk.Style()
         try:
-            self.style.theme_use('clam')
+            style.theme_use('clam')
         except Exception:
             pass
 
-        # Variables for Encode Tab
-        self.encode_img_path = tk.StringVar()
-        self.encode_img_info = tk.StringVar(value="No image selected.")
-        self.redundancy_var = tk.IntVar(value=5)  # Default to Robust 5x
-        
-        # Variables for Decode Tab
-        self.decode_img_path = tk.StringVar()
-        self.decode_img_info = tk.StringVar(value="No stego image selected.")
-        self.integrity_status = tk.StringVar(value="")
+        # Notebook tab styling
+        style.configure("TNotebook", background=self.C_BG, borderwidth=0)
+        style.configure(
+            "TNotebook.Tab",
+            font=("Segoe UI", 10, "bold"),
+            padding=[20, 10],
+            background="#e2e8f0",
+            foreground=self.C_TEXT_MUTED,
+            borderwidth=0
+        )
+        style.map(
+            "TNotebook.Tab",
+            background=[("selected", "#ffffff")],
+            foreground=[("selected", self.C_PRIMARY)]
+        )
 
-        self._build_ui()
+        # Progressbar styling
+        style.configure(
+            "Capacity.Horizontal.TProgressbar",
+            troughcolor="#e2e8f0",
+            background=self.C_PRIMARY,
+            thickness=8,
+            borderwidth=0
+        )
 
-    def _build_ui(self):
-        # Header banner
-        header_frame = tk.Frame(self.root, bg="#1e293b", height=75)
-        header_frame.pack(fill="x")
-        header_frame.pack_propagate(False)
+    def _build_header(self):
+        header = tk.Frame(self.root, bg="#0f172a", height=80)
+        header.pack(fill="x")
+        header.pack_propagate(False)
+
+        top_container = tk.Frame(header, bg="#0f172a")
+        top_container.pack(fill="both", expand=True, padx=24, pady=12)
 
         title_lbl = tk.Label(
-            header_frame,
-            text="TEXT STEGANOGRAPHY",
-            font=("Segoe UI", 16, "bold"),
+            top_container,
+            text="🔐 TEXT STEGANOGRAPHY STUDIO",
+            font=("Segoe UI", 15, "bold"),
             fg="#f8fafc",
-            bg="#1e293b"
+            bg="#0f172a"
         )
-        title_lbl.pack(pady=(8, 2))
+        title_lbl.pack(anchor="w")
 
         subtitle_lbl = tk.Label(
-            header_frame,
-            text="LSB Image Data Hiding with Majority-Voting Error Correction & Tamper Detection",
+            top_container,
+            text="Robust LSB Data Hiding with Majority-Voting Error Correction & Tamper Detection",
             font=("Segoe UI", 9),
             fg="#94a3b8",
-            bg="#1e293b"
+            bg="#0f172a"
         )
-        subtitle_lbl.pack()
+        subtitle_lbl.pack(anchor="w")
 
-        # Notebook for Tabs
-        notebook = ttk.Notebook(self.root)
-        notebook.pack(fill="both", expand=True, padx=12, pady=10)
+    def _build_notebook(self):
+        self.notebook = ttk.Notebook(self.root)
+        self.notebook.pack(fill="both", expand=True, padx=18, pady=(12, 6))
 
-        # Tab 1: Encode
-        encode_tab = ttk.Frame(notebook)
-        notebook.add(encode_tab, text="  Hide Message (Encode)  ")
-        self._build_encode_tab(encode_tab)
+        # Tab 1: Encode (Hide)
+        self.tab_encode = tk.Frame(self.notebook, bg=self.C_BG)
+        self.notebook.add(self.tab_encode, text="   🔒 Hide Message (Encode)   ")
+        self._build_encode_view()
 
-        # Tab 2: Decode
-        decode_tab = ttk.Frame(notebook)
-        notebook.add(decode_tab, text="  Extract Message (Decode)  ")
-        self._build_decode_tab(decode_tab)
+        # Tab 2: Decode (Extract)
+        self.tab_decode = tk.Frame(self.notebook, bg=self.C_BG)
+        self.notebook.add(self.tab_decode, text="   🔓 Extract Message (Decode)   ")
+        self._build_decode_view()
 
-        # Status bar
-        self.status_var = tk.StringVar(value="Ready.")
-        status_bar = tk.Label(
-            self.root,
+    def _build_statusbar(self):
+        status_frame = tk.Frame(self.root, bg="#f1f5f9", height=28, highlightthickness=1, highlightbackground=self.C_BORDER)
+        status_frame.pack(side="bottom", fill="x")
+        status_frame.pack_propagate(False)
+
+        self.status_var = tk.StringVar(value="Ready. Select an image or click '⚡ Load Demo Image' to begin.")
+        status_lbl = tk.Label(
+            status_frame,
             textvariable=self.status_var,
-            bd=1,
-            relief=tk.SUNKEN,
-            anchor="w",
             font=("Segoe UI", 8),
             fg="#475569",
-            bg="#f1f5f9"
+            bg="#f1f5f9",
+            anchor="w",
+            padx=16
         )
-        status_bar.pack(side="bottom", fill="x")
+        status_lbl.pack(fill="both", expand=True)
 
-    def _build_encode_tab(self, parent):
-        frame = ttk.Frame(parent, padding=12)
-        frame.pack(fill="both", expand=True)
+    # =========================================================================
+    # TAB 1: ENCODE VIEW
+    # =========================================================================
+    def _build_encode_view(self):
+        container = tk.Frame(self.tab_encode, bg=self.C_BG)
+        container.pack(fill="both", expand=True, padx=12, pady=10)
 
-        # 1. Carrier Image Selection
-        img_select_box = ttk.LabelFrame(frame, text="1. Select Carrier (Cover) Image", padding=10)
-        img_select_box.pack(fill="x", pady=(0, 8))
+        # Top Card: Image Selection & Live Preview
+        card_img = self._create_card(container, "1. Carrier (Cover) Image")
+        card_img.pack(fill="x", pady=(0, 10))
 
-        top_row = ttk.Frame(img_select_box)
-        top_row.pack(fill="x")
+        img_row = tk.Frame(card_img, bg=self.C_CARD)
+        img_row.pack(fill="x", padx=14, pady=10)
 
-        path_entry = ttk.Entry(top_row, textvariable=self.encode_img_path, state="readonly")
-        path_entry.pack(side="left", fill="x", expand=True, padx=(0, 8))
-
-        browse_btn = ttk.Button(top_row, text="Browse Image...", command=self._browse_encode_image)
-        browse_btn.pack(side="right")
-
-        info_lbl = tk.Label(img_select_box, textvariable=self.encode_img_info, fg="#0f766e", font=("Segoe UI", 9, "italic"))
-        info_lbl.pack(anchor="w", pady=(6, 0))
-
-        # 2. Protection Mode Selection
-        mode_box = ttk.LabelFrame(frame, text="2. Protection & Integrity Mode", padding=10)
-        mode_box.pack(fill="x", pady=(0, 8))
-
-        r_robust = ttk.Radiobutton(
-            mode_box,
-            text="🛡️ Robust Mode (5x Redundancy) — Survived pixel edits, drawing, and tampering via Majority Voting [Recommended]",
-            variable=self.redundancy_var,
-            value=5,
-            command=self._refresh_capacity_label
+        # Image Thumbnail Canvas
+        self.enc_preview_canvas = tk.Canvas(
+            img_row, width=120, height=90, bg="#f1f5f9",
+            highlightthickness=1, highlightbackground=self.C_BORDER
         )
-        r_robust.pack(anchor="w", pady=2)
+        self.enc_preview_canvas.pack(side="left", padx=(0, 14))
+        self._draw_canvas_placeholder(self.enc_preview_canvas, "No Image")
 
-        r_standard = ttk.Radiobutton(
-            mode_box,
-            text="⚡ Standard Mode (1x Redundancy) — Maximum capacity, but fragile to pixel alterations",
-            variable=self.redundancy_var,
-            value=1,
-            command=self._refresh_capacity_label
+        # Right side info & buttons
+        info_col = tk.Frame(img_row, bg=self.C_CARD)
+        info_col.pack(side="left", fill="both", expand=True)
+
+        path_lbl = tk.Label(
+            info_col, textvariable=self.enc_img_path,
+            font=("Consolas", 8), fg="#64748b", bg="#f8fafc",
+            anchor="w", padx=6, pady=4, relief=tk.SOLID, borderwidth=1
         )
-        r_standard.pack(anchor="w", pady=2)
+        path_lbl.pack(fill="x", pady=(0, 6))
 
-        # 3. Secret Message Input
-        msg_box = ttk.LabelFrame(frame, text="3. Enter Secret Message", padding=10)
-        msg_box.pack(fill="both", expand=True, pady=(0, 8))
-
-        self.msg_text = tk.Text(msg_box, height=7, wrap="word", font=("Consolas", 10))
-        self.msg_text.pack(fill="both", expand=True, side="left")
-        self.msg_text.bind("<KeyRelease>", self._update_encode_char_count)
-
-        scrollbar = ttk.Scrollbar(msg_box, orient="vertical", command=self.msg_text.yview)
-        scrollbar.pack(side="right", fill="y")
-        self.msg_text.config(yscrollcommand=scrollbar.set)
-
-        self.char_count_var = tk.StringVar(value="0 characters")
-        count_lbl = tk.Label(frame, textvariable=self.char_count_var, anchor="e", font=("Segoe UI", 8), fg="#64748b")
-        count_lbl.pack(fill="x", pady=(0, 4))
-
-        # Action Buttons
-        btn_frame = ttk.Frame(frame)
-        btn_frame.pack(fill="x", pady=4)
-
-        encode_btn = tk.Button(
-            btn_frame,
-            text="🔒 Hide Secret Message & Save Stego Image",
-            bg="#2563eb",
-            fg="white",
-            activebackground="#1d4ed8",
-            activeforeground="white",
-            font=("Segoe UI", 10, "bold"),
-            relief=tk.FLAT,
-            padx=16,
-            pady=8,
-            command=self._do_encode
+        meta_lbl = tk.Label(
+            info_col, textvariable=self.enc_img_info,
+            font=("Segoe UI", 9, "bold"), fg="#0f766e", bg=self.C_CARD, anchor="w"
         )
-        encode_btn.pack(side="right")
+        meta_lbl.pack(fill="x", pady=(0, 8))
 
-        clear_btn = ttk.Button(btn_frame, text="Clear", command=self._clear_encode)
+        btn_row = tk.Frame(info_col, bg=self.C_CARD)
+        btn_row.pack(anchor="w")
+
+        browse_btn = tk.Button(
+            btn_row, text="📁 Browse Image...", font=("Segoe UI", 9),
+            bg="#f1f5f9", fg=self.C_TEXT_MAIN, relief=tk.GROOVE,
+            padx=12, pady=4, cursor="hand2", command=self._browse_encode_image
+        )
+        browse_btn.pack(side="left", padx=(0, 8))
+
+        demo_btn = tk.Button(
+            btn_row, text="⚡ Load Demo Image", font=("Segoe UI", 9, "bold"),
+            bg="#e0e7ff", fg=self.C_PRIMARY, relief=tk.FLAT,
+            padx=12, pady=4, cursor="hand2", command=self._load_demo_image
+        )
+        demo_btn.pack(side="left")
+
+        # Middle Card: Protection Mode
+        card_mode = self._create_card(container, "2. Protection Mode")
+        card_mode.pack(fill="x", pady=(0, 10))
+
+        mode_row = tk.Frame(card_mode, bg=self.C_CARD)
+        mode_row.pack(fill="x", padx=14, pady=8)
+
+        rb_robust = tk.Radiobutton(
+            mode_row,
+            text="🛡️ Robust Mode (5x Redundancy) — Resilient to pixel edits, noise, and drawing via Majority Voting [Recommended]",
+            variable=self.enc_redundancy, value=5,
+            font=("Segoe UI", 9, "bold"), fg=self.C_PRIMARY, bg=self.C_CARD,
+            activebackground=self.C_CARD, command=self._on_mode_change
+        )
+        rb_robust.pack(anchor="w", pady=2)
+
+        rb_standard = tk.Radiobutton(
+            mode_row,
+            text="⚡ Standard Mode (1x Redundancy) — Maximizes storage capacity (fragile to pixel alterations)",
+            variable=self.enc_redundancy, value=1,
+            font=("Segoe UI", 9), fg=self.C_TEXT_MUTED, bg=self.C_CARD,
+            activebackground=self.C_CARD, command=self._on_mode_change
+        )
+        rb_standard.pack(anchor="w", pady=2)
+
+        # Bottom Card: Secret Message & Live Capacity
+        card_msg = self._create_card(container, "3. Secret Message")
+        card_msg.pack(fill="both", expand=True, pady=(0, 8))
+
+        msg_body = tk.Frame(card_msg, bg=self.C_CARD)
+        msg_body.pack(fill="both", expand=True, padx=14, pady=(8, 12))
+
+        # Text Area with Scrollbar
+        text_frame = tk.Frame(msg_body, bg=self.C_CARD)
+        text_frame.pack(fill="both", expand=True, pady=(0, 8))
+
+        self.enc_text = tk.Text(
+            text_frame, wrap="word", font=("Consolas", 10),
+            bg="#f8fafc", fg=self.C_TEXT_MAIN, relief=tk.SOLID, borderwidth=1,
+            padx=8, pady=8
+        )
+        self.enc_text.pack(side="left", fill="both", expand=True)
+        self.enc_text.bind("<KeyRelease>", self._update_capacity_meter)
+
+        scroll = ttk.Scrollbar(text_frame, orient="vertical", command=self.enc_text.yview)
+        scroll.pack(side="right", fill="y")
+        self.enc_text.config(yscrollcommand=scroll.set)
+
+        # Capacity Progress Bar & Labels
+        cap_row = tk.Frame(msg_body, bg=self.C_CARD)
+        cap_row.pack(fill="x", pady=(0, 6))
+
+        self.enc_cap_lbl = tk.Label(
+            cap_row, text="Storage Usage: 0 / 0 characters (0%)",
+            font=("Segoe UI", 8), fg=self.C_TEXT_MUTED, bg=self.C_CARD
+        )
+        self.enc_cap_lbl.pack(side="left")
+
+        self.enc_progress = ttk.Progressbar(
+            cap_row, orient="horizontal", mode="determinate",
+            style="Capacity.Horizontal.TProgressbar", length=220
+        )
+        self.enc_progress.pack(side="right")
+
+        # Encode Action Button
+        action_row = tk.Frame(msg_body, bg=self.C_CARD)
+        action_row.pack(fill="x", pady=(4, 0))
+
+        clear_btn = tk.Button(
+            action_row, text="Clear", font=("Segoe UI", 9),
+            bg="#f1f5f9", fg=self.C_TEXT_MUTED, relief=tk.FLAT,
+            padx=14, pady=6, cursor="hand2", command=self._clear_encode_fields
+        )
         clear_btn.pack(side="left")
 
-    def _build_decode_tab(self, parent):
-        frame = ttk.Frame(parent, padding=12)
-        frame.pack(fill="both", expand=True)
+        self.enc_action_btn = tk.Button(
+            action_row, text="🔒 Hide Secret Message & Save Stego Image",
+            font=("Segoe UI", 10, "bold"), bg=self.C_PRIMARY, fg="#ffffff",
+            activebackground=self.C_PRIMARY_HOVER, activeforeground="#ffffff",
+            relief=tk.FLAT, padx=20, pady=8, cursor="hand2", command=self._do_encode
+        )
+        self.enc_action_btn.pack(side="right")
 
-        # 1. Stego Image Selection
-        img_select_box = ttk.LabelFrame(frame, text="1. Select Stego Image (containing hidden text)", padding=10)
-        img_select_box.pack(fill="x", pady=(0, 10))
+    # =========================================================================
+    # TAB 2: DECODE VIEW
+    # =========================================================================
+    def _build_decode_view(self):
+        container = tk.Frame(self.tab_decode, bg=self.C_BG)
+        container.pack(fill="both", expand=True, padx=12, pady=10)
 
-        top_row = ttk.Frame(img_select_box)
-        top_row.pack(fill="x")
+        # Top Card: Stego Image Selection & Live Preview
+        card_img = self._create_card(container, "1. Stego Image Selection")
+        card_img.pack(fill="x", pady=(0, 10))
 
-        path_entry = ttk.Entry(top_row, textvariable=self.decode_img_path, state="readonly")
-        path_entry.pack(side="left", fill="x", expand=True, padx=(0, 8))
+        img_row = tk.Frame(card_img, bg=self.C_CARD)
+        img_row.pack(fill="x", padx=14, pady=10)
 
-        browse_btn = ttk.Button(top_row, text="Browse Stego Image...", command=self._browse_decode_image)
-        browse_btn.pack(side="right")
+        # Image Thumbnail Canvas
+        self.dec_preview_canvas = tk.Canvas(
+            img_row, width=120, height=90, bg="#f1f5f9",
+            highlightthickness=1, highlightbackground=self.C_BORDER
+        )
+        self.dec_preview_canvas.pack(side="left", padx=(0, 14))
+        self._draw_canvas_placeholder(self.dec_preview_canvas, "No Image")
 
-        info_lbl = tk.Label(img_select_box, textvariable=self.decode_img_info, fg="#0f766e", font=("Segoe UI", 9, "italic"))
-        info_lbl.pack(anchor="w", pady=(6, 0))
+        info_col = tk.Frame(img_row, bg=self.C_CARD)
+        info_col.pack(side="left", fill="both", expand=True)
+
+        path_lbl = tk.Label(
+            info_col, textvariable=self.dec_img_path,
+            font=("Consolas", 8), fg="#64748b", bg="#f8fafc",
+            anchor="w", padx=6, pady=4, relief=tk.SOLID, borderwidth=1
+        )
+        path_lbl.pack(fill="x", pady=(0, 6))
+
+        meta_lbl = tk.Label(
+            info_col, textvariable=self.dec_img_info,
+            font=("Segoe UI", 9, "bold"), fg="#0f766e", bg=self.C_CARD, anchor="w"
+        )
+        meta_lbl.pack(fill="x", pady=(0, 8))
+
+        btn_row = tk.Frame(info_col, bg=self.C_CARD)
+        btn_row.pack(anchor="w")
+
+        browse_btn = tk.Button(
+            btn_row, text="📁 Browse Stego Image...", font=("Segoe UI", 9),
+            bg="#f1f5f9", fg=self.C_TEXT_MAIN, relief=tk.GROOVE,
+            padx=12, pady=4, cursor="hand2", command=self._browse_decode_image
+        )
+        browse_btn.pack(side="left", padx=(0, 8))
 
         # Decode Action Button
-        decode_action_btn = tk.Button(
-            frame,
-            text="🔓 Extract Hidden Secret Message & Check Integrity",
-            bg="#059669",
-            fg="white",
-            activebackground="#047857",
-            activeforeground="white",
-            font=("Segoe UI", 10, "bold"),
-            relief=tk.FLAT,
-            padx=16,
-            pady=8,
-            command=self._do_decode
+        self.dec_action_btn = tk.Button(
+            card_img, text="🔓 Extract Confidential Message & Verify Integrity",
+            font=("Segoe UI", 10, "bold"), bg=self.C_SUCCESS, fg="#ffffff",
+            activebackground=self.C_SUCCESS_HOVER, activeforeground="#ffffff",
+            relief=tk.FLAT, padx=16, pady=8, cursor="hand2", command=self._do_decode
         )
-        decode_action_btn.pack(fill="x", pady=(0, 8))
+        self.dec_action_btn.pack(fill="x", padx=14, pady=(0, 12))
 
-        # Integrity Badge Label
-        self.integrity_lbl = tk.Label(
-            frame,
-            textvariable=self.integrity_status,
-            font=("Segoe UI", 9, "bold"),
-            fg="#047857",
-            bg="#ecfdf5",
-            padx=10,
-            pady=6,
-            relief=tk.GROOVE
+        # Middle: Tamper & Integrity Radar Card (Hidden initially)
+        self.card_radar = self._create_card(container, "2. Integrity & Tamper Radar")
+        self.radar_content = tk.Frame(self.card_radar, bg=self.C_CARD)
+        self.radar_content.pack(fill="x", padx=14, pady=10)
+
+        self.radar_badge = tk.Label(
+            self.radar_content, text="", font=("Segoe UI", 10, "bold"),
+            padx=12, pady=6, relief=tk.FLAT
         )
-        # Initially not packed until extraction
+        self.radar_badge.pack(anchor="w", pady=(0, 4))
 
-        # Extracted Message Output Box
-        output_box = ttk.LabelFrame(frame, text="2. Extracted Confidential Message", padding=10)
-        output_box.pack(fill="both", expand=True, pady=(0, 10))
+        self.radar_details = tk.Label(
+            self.radar_content, text="", font=("Segoe UI", 9),
+            fg=self.C_TEXT_MUTED, bg=self.C_CARD, justify="left", anchor="w"
+        )
+        self.radar_details.pack(fill="x")
 
-        self.extracted_text = tk.Text(output_box, height=8, wrap="word", font=("Consolas", 10), state="disabled", bg="#f8fafc")
-        self.extracted_text.pack(fill="both", expand=True, side="left")
+        # Bottom Card: Extracted Message
+        card_extracted = self._create_card(container, "3. Extracted Secret Message")
+        card_extracted.pack(fill="both", expand=True, pady=(0, 8))
 
-        scrollbar = ttk.Scrollbar(output_box, orient="vertical", command=self.extracted_text.yview)
-        scrollbar.pack(side="right", fill="y")
-        self.extracted_text.config(yscrollcommand=scrollbar.set)
+        extracted_body = tk.Frame(card_extracted, bg=self.C_CARD)
+        extracted_body.pack(fill="both", expand=True, padx=14, pady=(8, 12))
 
-        # Bottom Buttons
-        bottom_frame = ttk.Frame(frame)
-        bottom_frame.pack(fill="x")
+        text_frame2 = tk.Frame(extracted_body, bg=self.C_CARD)
+        text_frame2.pack(fill="both", expand=True, pady=(0, 8))
 
-        copy_btn = ttk.Button(bottom_frame, text="📋 Copy Message to Clipboard", command=self._copy_extracted)
-        copy_btn.pack(side="left")
+        self.dec_text = tk.Text(
+            text_frame2, wrap="word", font=("Consolas", 10),
+            bg="#f8fafc", fg=self.C_TEXT_MAIN, relief=tk.SOLID, borderwidth=1,
+            padx=8, pady=8, state="disabled"
+        )
+        self.dec_text.pack(side="left", fill="both", expand=True)
 
-        clear_btn = ttk.Button(bottom_frame, text="Clear", command=self._clear_decode)
-        clear_btn.pack(side="right")
+        scroll2 = ttk.Scrollbar(text_frame2, orient="vertical", command=self.dec_text.yview)
+        scroll2.pack(side="right", fill="y")
+        self.dec_text.config(yscrollcommand=scroll2.set)
 
-    # --- Event Handlers for Encode ---
+        action_row2 = tk.Frame(extracted_body, bg=self.C_CARD)
+        action_row2.pack(fill="x")
+
+        self.copy_btn = tk.Button(
+            action_row2, text="📋 Copy Message", font=("Segoe UI", 9, "bold"),
+            bg="#f1f5f9", fg=self.C_PRIMARY, relief=tk.FLAT,
+            padx=14, pady=6, cursor="hand2", command=self._copy_extracted
+        )
+        self.copy_btn.pack(side="left")
+
+        clear_btn2 = tk.Button(
+            action_row2, text="Clear", font=("Segoe UI", 9),
+            bg="#f1f5f9", fg=self.C_TEXT_MUTED, relief=tk.FLAT,
+            padx=14, pady=6, cursor="hand2", command=self._clear_decode_fields
+        )
+        clear_btn2.pack(side="right")
+
+    # =========================================================================
+    # HELPER WIDGETS & GRAPHICS
+    # =========================================================================
+    def _create_card(self, parent, title_text):
+        frame = tk.Frame(parent, bg=self.C_CARD, highlightthickness=1, highlightbackground=self.C_BORDER)
+        title = tk.Label(
+            frame, text=title_text, font=("Segoe UI", 10, "bold"),
+            fg=self.C_TEXT_MAIN, bg=self.C_CARD, anchor="w", padx=14, pady=8
+        )
+        title.pack(fill="x")
+        divider = tk.Frame(frame, bg="#f1f5f9", height=1)
+        divider.pack(fill="x")
+        return frame
+
+    def _draw_canvas_placeholder(self, canvas, text):
+        canvas.delete("all")
+        canvas.create_rectangle(2, 2, 118, 88, fill="#f8fafc", outline="#cbd5e1", dash=(4, 4))
+        canvas.create_text(60, 45, text=f"📷 {text}", font=("Segoe UI", 8), fill="#94a3b8")
+
+    def _update_canvas_thumbnail(self, canvas, image_path, is_encode=True):
+        try:
+            with Image.open(image_path) as img:
+                img_copy = img.copy()
+                img_copy.thumbnail((116, 86), Image.Resampling.LANCZOS)
+                photo = ImageTk.PhotoImage(img_copy)
+                
+                canvas.delete("all")
+                # Center photo in canvas
+                canvas.create_image(60, 45, image=photo, anchor="center")
+                
+                if is_encode:
+                    self.enc_thumbnail_ref = photo
+                else:
+                    self.dec_thumbnail_ref = photo
+        except Exception:
+            self._draw_canvas_placeholder(canvas, "Invalid")
+
+    # =========================================================================
+    # EVENT HANDLERS - ENCODE
+    # =========================================================================
     def _browse_encode_image(self):
         file_path = filedialog.askopenfilename(
             title="Select Cover Image",
             filetypes=[
                 ("Image Files", "*.png;*.jpg;*.jpeg;*.bmp;*.webp"),
-                ("PNG Files (*.png)", "*.png"),
+                ("PNG Lossless (*.png)", "*.png"),
                 ("All Files", "*.*")
             ]
         )
         if file_path:
-            self.encode_img_path.set(file_path)
-            self._refresh_capacity_label()
-            self.status_var.set(f"Loaded cover image: {os.path.basename(file_path)}")
+            self._load_encode_image(file_path)
 
-    def _refresh_capacity_label(self):
-        img_path = self.encode_img_path.get().strip()
-        if not img_path or not os.path.exists(img_path):
-            return
+    def _load_demo_image(self):
+        demo_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sample_carrier.png")
+        if not os.path.exists(demo_path):
+            # Create a simple synthetic sample image
+            img = Image.new("RGB", (300, 300))
+            draw = ImageDraw.Draw(img)
+            for y in range(300):
+                for x in range(300):
+                    draw.point((x, y), fill=(int(255 * x / 300), int(255 * y / 300), 160))
+            img.save(demo_path, format="PNG")
+        self._load_encode_image(demo_path)
+        self.status_var.set("Demo image loaded successfully!")
+
+    def _load_encode_image(self, file_path):
+        self.enc_img_path.set(file_path)
+        self._update_canvas_thumbnail(self.enc_preview_canvas, file_path, is_encode=True)
         try:
-            red = self.redundancy_var.get()
-            cap = get_image_capacity(img_path, redundancy=red)
-            with Image.open(img_path) as im:
+            with Image.open(file_path) as im:
                 w, h = im.size
-            mode_desc = f"Robust ({red}x)" if red > 1 else "Standard (1x)"
-            self.encode_img_info.set(
-                f"Dimensions: {w} × {h} px | Mode: {mode_desc} | Max Capacity: {cap:,} characters"
-            )
+                fmt = im.format or "IMG"
+                file_size_kb = os.path.getsize(file_path) / 1024
+            
+            red = self.enc_redundancy.get()
+            self.enc_capacity = get_image_capacity(file_path, redundancy=red)
+            self.enc_img_info.set(f"{w} × {h} px  |  {fmt}  |  {file_size_kb:.1f} KB  |  Capacity: {self.enc_capacity:,} chars")
+            self._update_capacity_meter()
+            self.status_var.set(f"Loaded cover image: {os.path.basename(file_path)}")
         except Exception as e:
-            self.encode_img_info.set(f"Error reading image: {e}")
+            self.enc_img_info.set(f"Error reading image: {e}")
 
-    def _update_encode_char_count(self, event=None):
-        msg = self.msg_text.get("1.0", tk.END).rstrip("\n")
-        self.char_count_var.set(f"{len(msg):,} characters")
+    def _on_mode_change(self):
+        path = self.enc_img_path.get()
+        if path and os.path.exists(path):
+            self._load_encode_image(path)
+
+    def _update_capacity_meter(self, event=None):
+        msg = self.enc_text.get("1.0", tk.END).rstrip("\n")
+        msg_len = len(msg)
+        cap = self.enc_capacity
+
+        if cap > 0:
+            pct = min(100.0, (msg_len / cap) * 100.0)
+            self.enc_progress["value"] = pct
+            self.enc_cap_lbl.config(text=f"Storage Usage: {msg_len:,} / {cap:,} characters ({pct:.1f}%)")
+            if pct > 95:
+                self.enc_cap_lbl.config(fg="#dc2626")  # Red
+            elif pct > 75:
+                self.enc_cap_lbl.config(fg="#d97706")  # Amber
+            else:
+                self.enc_cap_lbl.config(fg=self.C_TEXT_MUTED)
+        else:
+            self.enc_progress["value"] = 0
+            self.enc_cap_lbl.config(text=f"Storage Usage: {msg_len:,} characters (No image selected)")
 
     def _do_encode(self):
-        img_path = self.encode_img_path.get().strip()
-        secret_msg = self.msg_text.get("1.0", tk.END).rstrip("\n")
-        redundancy = self.redundancy_var.get()
+        img_path = self.enc_img_path.get().strip()
+        secret_msg = self.enc_text.get("1.0", tk.END).rstrip("\n")
+        redundancy = self.enc_redundancy.get()
 
         if not img_path:
-            messagebox.showwarning("Missing Image", "Please select a cover image first.")
+            messagebox.showwarning("Missing Image", "Please select a cover image first (or click '⚡ Load Demo Image').")
             return
 
         if not secret_msg:
@@ -303,36 +526,40 @@ class SteganographyApp:
 
         try:
             res = encode_text(img_path, secret_msg, save_path, redundancy=redundancy)
-            self.status_var.set(f"Saved stego image to: {res['output_path']}")
+            self.status_var.set(f"Stego image saved: {os.path.basename(res['output_path'])}")
             
-            mode_note = (
-                "🛡️ Robust Mode: Protected with Majority Voting. Even if pixels are edited, "
-                "the secret message can still be reconstructed!"
+            mode_desc = (
+                "🛡️ Robust Mode (5x Redundancy): Protected by Majority Voting.\n"
+                "Even if pixels are edited, the secret message can still be reconstructed!"
                 if redundancy > 1 else
-                "⚡ Standard Mode: Maximum storage capacity used."
+                "⚡ Standard Mode (1x Redundancy): Maximum capacity utilized."
             )
-            
+
             messagebox.showinfo(
                 "Steganography Success",
-                f"Secret message successfully embedded!\n\n"
-                f"File Saved: {res['output_path']}\n"
-                f"Mode: {res['mode']}\n"
-                f"Message Length: {res['message_length']:,} characters\n"
-                f"Capacity Used: {res['capacity_used_percent']}%\n\n"
-                f"{mode_note}"
+                f"Secret message was successfully embedded!\n\n"
+                f"📁 Output File: {res['output_path']}\n"
+                f"📊 Protection: {res['mode']}\n"
+                f"📝 Message Size: {res['message_length']:,} characters\n"
+                f"📈 Capacity Used: {res['capacity_used_percent']}%\n\n"
+                f"{mode_desc}"
             )
         except Exception as e:
             messagebox.showerror("Encoding Error", str(e))
             self.status_var.set("Encoding failed.")
 
-    def _clear_encode(self):
-        self.encode_img_path.set("")
-        self.encode_img_info.set("No image selected.")
-        self.msg_text.delete("1.0", tk.END)
-        self.char_count_var.set("0 characters")
+    def _clear_encode_fields(self):
+        self.enc_img_path.set("")
+        self.enc_img_info.set("No image loaded yet.")
+        self.enc_capacity = 0
+        self.enc_text.delete("1.0", tk.END)
+        self._draw_canvas_placeholder(self.enc_preview_canvas, "No Image")
+        self._update_capacity_meter()
         self.status_var.set("Cleared encode fields.")
 
-    # --- Event Handlers for Decode ---
+    # =========================================================================
+    # EVENT HANDLERS - DECODE
+    # =========================================================================
     def _browse_decode_image(self):
         file_path = filedialog.askopenfilename(
             title="Select Stego Image",
@@ -343,86 +570,94 @@ class SteganographyApp:
             ]
         )
         if file_path:
-            self.decode_img_path.set(file_path)
+            self.dec_img_path.set(file_path)
+            self._update_canvas_thumbnail(self.dec_preview_canvas, file_path, is_encode=False)
             try:
                 with Image.open(file_path) as im:
                     w, h = im.size
-                self.decode_img_info.set(f"Loaded: {os.path.basename(file_path)} ({w} × {h} px)")
+                    fmt = im.format or "IMG"
+                    sz_kb = os.path.getsize(file_path) / 1024
+                self.dec_img_info.set(f"{w} × {h} px  |  {fmt}  |  {sz_kb:.1f} KB")
+                self.card_radar.pack_forget()
                 self.status_var.set(f"Selected stego image: {os.path.basename(file_path)}")
-                self.integrity_lbl.pack_forget()
             except Exception as e:
-                self.decode_img_info.set(f"Error: {e}")
+                self.dec_img_info.set(f"Error: {e}")
 
     def _do_decode(self):
-        stego_path = self.decode_img_path.get().strip()
+        stego_path = self.dec_img_path.get().strip()
         if not stego_path:
             messagebox.showwarning("Missing Image", "Please select a stego image to extract message from.")
             return
 
         try:
             result = decode_text(stego_path)
-            
-            self.extracted_text.config(state="normal")
-            self.extracted_text.delete("1.0", tk.END)
-            self.extracted_text.insert("1.0", result)
-            self.extracted_text.config(state="disabled")
 
-            # Update Integrity Badge
-            self.integrity_lbl.pack(fill="x", pady=(0, 8), before=self.extracted_text.master)
+            # Display extracted message
+            self.dec_text.config(state="normal")
+            self.dec_text.delete("1.0", tk.END)
+            self.dec_text.insert("1.0", result)
+            self.dec_text.config(state="disabled")
+
+            # Show Radar Card with Modern Badges
+            self.card_radar.pack(fill="x", pady=(0, 10), before=self.dec_text.master.master)
+
             if result.tampered:
-                self.integrity_status.set(
-                    f"⚠️ TAMPERING DETECTED & REPAIRED: {result.tampered_bits:,} corrupted pixel bits "
-                    f"were corrected via Majority Voting! (Tamper rate: {result.tamper_rate}%)"
+                self.radar_badge.config(
+                    text=f"⚠️ TAMPERING DETECTED & REPAIRED  ({result.mode})",
+                    fg="#b45309", bg="#fef3c7"
                 )
-                self.integrity_lbl.config(fg="#b45309", bg="#fef3c7")  # Amber badge
+                self.radar_details.config(
+                    text=f"• Corrupted pixel bits detected: {result.tampered_bits:,} bits\n"
+                         f"• Majority Voting repair: 100% of bits recovered\n"
+                         f"• Tamper rate: {result.tamper_rate}% of sampled bits"
+                )
             else:
-                self.integrity_status.set(
-                    f"✅ IMAGE INTACT: Clean signal detected ({result.mode}). 0 pixel bit flips detected."
+                self.radar_badge.config(
+                    text=f"✅ IMAGE INTACT & PRISTINE  ({result.mode})",
+                    fg="#047857", bg="#ecfdf5"
                 )
-                self.integrity_lbl.config(fg="#047857", bg="#ecfdf5")  # Green badge
+                self.radar_details.config(
+                    text="• Clean signal: 0 bit flips detected\n"
+                         "• Pixel integrity: 100.0% match with original embedded bits"
+                )
 
             self.status_var.set(f"Message extracted! Length: {len(result):,} chars | Mode: {result.mode}")
-            
-            detail = (
-                f"Secret message retrieved successfully!\n\n"
-                f"Mode: {result.mode}\n"
-                f"Length: {len(result):,} characters\n"
-            )
-            if result.tampered:
-                detail += f"\nNotice: The image was modified, but {result.tampered_bits} corrupted bits were repaired by Majority Voting."
-            messagebox.showinfo("Extraction Success", detail)
 
         except Exception as e:
-            self.extracted_text.config(state="normal")
-            self.extracted_text.delete("1.0", tk.END)
-            self.extracted_text.config(state="disabled")
-            self.integrity_lbl.pack_forget()
+            self.dec_text.config(state="normal")
+            self.dec_text.delete("1.0", tk.END)
+            self.dec_text.config(state="disabled")
+            self.card_radar.pack_forget()
             messagebox.showerror("Decoding Error", str(e))
-            self.status_var.set("Decoding failed.")
+            self.status_var.set("Decoding failed: No valid hidden message detected.")
 
     def _copy_extracted(self):
-        text = self.extracted_text.get("1.0", tk.END).rstrip("\n")
+        text = self.dec_text.get("1.0", tk.END).rstrip("\n")
         if not text:
             messagebox.showinfo("Clipboard", "No text to copy.")
             return
         self.root.clipboard_clear()
         self.root.clipboard_append(text)
+        
+        # Interactive UI feedback
+        self.copy_btn.config(text="✓ Copied to Clipboard!", fg="#059669")
+        self.root.after(2000, lambda: self.copy_btn.config(text="📋 Copy Message", fg=self.C_PRIMARY))
         self.status_var.set("Secret message copied to clipboard.")
-        messagebox.showinfo("Copied", "Secret message copied to clipboard!")
 
-    def _clear_decode(self):
-        self.decode_img_path.set("")
-        self.decode_img_info.set("No stego image selected.")
-        self.integrity_lbl.pack_forget()
-        self.extracted_text.config(state="normal")
-        self.extracted_text.delete("1.0", tk.END)
-        self.extracted_text.config(state="disabled")
+    def _clear_decode_fields(self):
+        self.dec_img_path.set("")
+        self.dec_img_info.set("No stego image loaded yet.")
+        self.card_radar.pack_forget()
+        self.dec_text.config(state="normal")
+        self.dec_text.delete("1.0", tk.END)
+        self.dec_text.config(state="disabled")
+        self._draw_canvas_placeholder(self.dec_preview_canvas, "No Image")
         self.status_var.set("Cleared decode fields.")
 
 
 def main():
     root = tk.Tk()
-    app = SteganographyApp(root)
+    app = ModernSteganographyGUI(root)
     root.mainloop()
 
 

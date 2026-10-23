@@ -1,6 +1,6 @@
-# TEXT STEGANOGRAPHY (ROBUST LSB DATA HIDING)
+# TEXT STEGANOGRAPHY STUDIO (ROBUST LSB DATA HIDING)
 
-A complete, practical Python project for hiding confidential text messages inside digital images using **Least Significant Bit (LSB) Steganography**, featuring **Majority-Voting Error Correction** and **Tamper Detection** to survive pixel edits and image modifications.
+A complete, modern Python application for hiding confidential text messages inside digital images using **Least Significant Bit (LSB) Steganography**, featuring **Majority-Voting Error Correction**, **Tamper Detection**, a **Modern Desktop GUI**, and a **Streamlit Web Studio**.
 
 ---
 
@@ -17,6 +17,30 @@ The system consists of two main operations: **encoding** and **decoding**.
 This project demonstrates the practical application of steganography in information security and secure communication. It can be used for confidential data sharing, protecting sensitive messages, and understanding digital data-hiding techniques. Overall, the project provides practical knowledge of image processing, binary data representation, encoding, decoding, and secure information exchange through digital images.
 
 **Keywords**: *Image Steganography, Data Hiding, Least Significant Bit, Secure Communication, Cryptography, Image Processing, Data Encryption, Secret Message, Encoding, Decoding, Error Correction, Majority Voting, Tamper Detection.*
+
+---
+
+## 🎨 UI/UX Features & Interfaces
+
+### 1. Modern Desktop GUI (`gui.py`)
+- **Card-Based Interface**: Clean card containers with subtle borders and clear visual hierarchy.
+- **Live Thumbnail Previews**: Real-time canvas preview of selected cover and stego images with aspect ratio preservation.
+- **Dynamic Capacity Meter & Progress Bar**: Real-time visual progress bar tracking capacity utilization as you type.
+- **1-Click "Load Demo Image"**: Instant sample image loader for fast demonstrations during reviews and viva exams.
+- **Interactive Tamper Radar**: Visual health card in the Decode tab displaying:
+  - 🟢 **Pristine**: 0 bit flips detected.
+  - 🟡 **Tampered & Repaired**: Exact count of corrupted bits repaired by Majority Voting + Tamper Rate percentage.
+- **Interactive Copy Feedback**: "✓ Copied to Clipboard!" animated confirmation button.
+
+### 2. Companion Web Studio (`app_web.py`)
+- Browser-based interface powered by **Streamlit**.
+- Drag-and-drop file uploaders for cover and stego images.
+- Side-by-side comparison metrics.
+- 1-click **Download Stego Image** button.
+- Educational interactive tabs explaining LSB theory.
+
+### 3. Interactive CLI (`cli.py`)
+- Terminal menu for lightweight headless environments.
 
 ---
 
@@ -44,9 +68,10 @@ To make the secret message resilient to pixel changes:
 text-steganography/
 │
 ├── stego_core.py            # Core algorithms (Standard & Robust 5x LSB with Majority Voting)
-├── gui.py                   # Desktop GUI with Robust Mode toggle & Tamper Badge
+├── gui.py                   # Modern Desktop GUI (Card layout, live thumbnails, dynamic capacity)
+├── app_web.py               # Modern Streamlit Web Studio (Drag-and-drop, browser interface)
 ├── cli.py                   # Interactive Command-Line Interface (terminal menu)
-├── main.py                  # Main entry point (defaults to GUI, accepts --cli)
+├── main.py                  # Main entry point (Desktop GUI, --web, --cli)
 ├── sample_test.py           # Automated test suite (including deliberate pixel tampering test)
 ├── sample_carrier.png       # Sample cover image
 ├── sample_stego_robust.png  # Stego image with 5x redundant embedding
@@ -58,84 +83,34 @@ text-steganography/
 
 ## ⚙️ Installation & Requirements
 
-The project requires **Python 3.8+** and **Pillow**:
+The project requires **Python 3.8+**, **Pillow**, and **Streamlit**:
 
 ```bash
-pip install pillow
+pip install pillow streamlit
 ```
 
 ---
 
 ## 🚀 How to Run the Project
 
-### Option 1: Desktop Graphical User Interface (GUI) - Recommended
+### Option 1: Modern Desktop GUI (Default)
 ```bash
 python main.py
 ```
+*(or `python gui.py`)*
 
-#### GUI Features:
-- **Hide Message (Encode) Tab**:
-  - Browse cover image (`.png`, `.jpg`, `.bmp`).
-  - Choose between **Robust Mode (5x Redundancy)** [Recommended] and **Standard Mode (1x)**.
-  - Live capacity and character counters.
-  - 1-click **Hide Secret Message & Save Stego Image**.
-- **Extract Message (Decode) Tab**:
-  - Select stego image.
-  - Click **Extract Hidden Secret Message & Check Integrity**.
-  - **Integrity Badge**:
-    - 🟢 *Image Intact: Clean signal (0 corrupted bits).*
-    - 🟡 *Tampering Detected & Repaired: X corrupted bits corrected via Majority Voting!*
-  - **Copy Message to Clipboard** button.
+### Option 2: Modern Web Application (Browser)
+```bash
+python main.py --web
+```
+*(or `streamlit run app_web.py`)*
 
----
-
-### Option 2: Command-Line Interface (CLI)
+### Option 3: Command-Line Interface (CLI)
 ```bash
 python main.py --cli
 ```
 
-Prompts you to select between **Robust Mode** and **Standard Mode**, encodes/decodes, and displays tamper statistics.
-
----
-
-### Option 3: Run the Verification Script (with Tamper Test)
+### Option 4: Run the Verification Script (with Tamper Test)
 ```bash
 python sample_test.py
 ```
-
-Sample output:
-```text
-======================================================================
-   RUNNING TEXT STEGANOGRAPHY VERIFICATION & TAMPER-RESILIENCE TESTS
-======================================================================
-[STEP 1] Generating sample carrier image (250x250 pixels)...
-[STEP 2] Testing Standard Mode (1x)... [PASS]
-[STEP 3] Testing Robust Mode (5x) with DELIBERATE PIXEL TAMPERING...
- -> Deliberately corrupting pixels (drawing a solid box over embedded bits)...
- -> Tampered image saved to sample_stego_tampered.png
- -> Decoding message from the heavily tampered image...
-
------------------------------------------------------------------
-RECOVERED MESSAGE FROM TAMPERED IMAGE:
------------------------------------------------------------------
-CONFIDENTIAL TRANSMISSION
-Project: Text Steganography via LSB
-Status: Success!
-Security Clearance: Top Secret
-This message must survive pixel tampering!
------------------------------------------------------------------
-
-[VERIFICATION PASSED] Message retrieved 100% intact despite pixel damage!
- -> Tamper Detector: SUCCESSFULLY DETECTED!
- -> Bits Corrected:  272 corrupted bits repaired via Majority Voting.
- -> Tamper Rate:     4.25%
-======================================================================
-```
-
----
-
-## ⚠️ Important Note on Image Formats (PNG vs JPEG)
-
-- **Always save stego images as PNG (`.png`) or BMP (`.bmp`)**:
-  - PNG uses **lossless compression**, preserving every pixel bit.
-  - JPEG (`.jpg`) applies lossy compression (Discrete Cosine Transform) which rounds all pixel values, destroying the fine LSB values.
