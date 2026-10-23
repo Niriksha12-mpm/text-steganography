@@ -1,7 +1,7 @@
 <div align="center">
 
 # 🔐 TEXT STEGANOGRAPHY STUDIO
-### Executive Robust LSB Data Hiding with Error Correction & Multi-Format Templates
+### Executive Robust LSB Data Hiding with Majority-Voting Error Correction
 
 ![Python Version](https://img.shields.io/badge/Python-3.8%2B-blue?logo=python)
 ![UI Framework](https://img.shields.io/badge/GUI-CustomTkinter%20%7C%20Streamlit-6366f1)
@@ -9,7 +9,7 @@
 ![Image Format](https://img.shields.io/badge/Format-Lossless%20PNG%20%2F%20BMP-f59e0b)
 ![License](https://img.shields.io/badge/License-MIT-gray)
 
-**A next-generation steganography suite featuring a 2-Column Executive Dashboard, real-time telemetry, multi-format payload templates, and majority-voting error correction to withstand pixel tampering.**
+**A next-generation steganography suite featuring a 2-Column Executive Dashboard, real-time telemetry, and majority-voting error correction to withstand pixel tampering.**
 
 </div>
 
@@ -41,13 +41,14 @@ This project demonstrates the practical application of steganography in informat
 |                                                                                                    |
 |  LEFT PANEL: CARRIER IMAGE & ENGINE HUB          RIGHT PANEL: SECRET MESSAGE STUDIO                |
 |  +--------------------------------------------+  +-----------------------------------------------+ |
-|  | [📷 Live High-DPI Thumbnail Preview]       |  | FORMAT: [ Plain Text | Memo | JSON | Key ]   | |
+|  | [📷 Live High-DPI Thumbnail Preview]       |  | Monospace Payload Editor (JetBrains Mono)     | |
 |  |                                            |  |                                               | |
-|  | 📐 Res: 800 x 600 px  | 💾 Size: 142.5 KB   |  | Monospace Payload Editor (JetBrains Mono)     | |
-|  | 🖼️ Format: Lossless PNG                     |  | "CLASSIFICATION: TOP SECRET..."               | |
+|  | 📐 Res: 800 x 600 px  | 💾 Size: 142.5 KB   |  | "Type your sensitive confidential payload..." | |
+|  | 🖼️ Format: Lossless PNG                     |  |                                               | |
+|  | ⚡ Max Capacity: 35,984 characters         |  |                                               | |
 |  |                                            |  |                                               | |
 |  | [📁 Browse Image...]   [⚡ Demo Image]     |  | --------------------------------------------- | |
-|  |                                            |  | Telemetry: 142 Chars | 22 Words | 142 Bytes    | |
+|  |                                            |  | Telemetry: Payload: 142 chars | Capacity: 2.6% | |
 |  | SECURITY MODE:                             |  | Capacity Progress: [=============>        ]   | |
 |  | [ 🛡️ Robust (5x) ]   [ ⚡ Standard (1x) ]   |  |                                               | |
 |  +--------------------------------------------+  | [ Clear ]    [ 🔒 Hide Message & Save Stego ] | |
@@ -56,19 +57,6 @@ This project demonstrates the practical application of steganography in informat
 |  Ready. System Online.                                                                             |
 +----------------------------------------------------------------------------------------------------+
 ```
-
----
-
-## 📝 Multi-Format Text Templates
-
-The studio includes built-in structured format templates:
-
-| Format Mode | Purpose | Sample Structure |
-|---|---|---|
-| **📝 Plain Text** | General confidential messages | Clean raw text with live word/byte telemetry. |
-| **🔒 Classified Memo** | Intelligence / Defense transmission | Classification level, timestamp, clearance tier, and body. |
-| **⚡ JSON Data** | Structured credentials & tokens | Formatted JSON with syntax validation and auto-indent. |
-| **💻 Hex / Key** | Cryptographic token / key exchange | Formatted cryptographic key blocks with hash fingerprints. |
 
 ---
 
@@ -96,7 +84,7 @@ To make the secret message resilient to pixel changes:
 text-steganography/
 │
 ├── stego_core.py            # Core algorithms (Standard & Robust 5x LSB with Majority Voting)
-├── gui.py                   # Executive 2-Column Dashboard GUI (CustomTkinter, multi-format templates)
+├── gui.py                   # Executive 2-Column Dashboard GUI (CustomTkinter, streamlined text studio)
 ├── app_web.py               # Glassmorphic Web Studio (Streamlit, 2-column layout, download tools)
 ├── cli.py                   # Interactive Command-Line Interface (terminal menu)
 ├── main.py                  # Main unified entry point (Desktop GUI, --web, --cli)
@@ -141,33 +129,4 @@ python main.py --cli
 ### 4. Automated Tamper-Resilience Verification Test
 ```bash
 python sample_test.py
-```
-
-Expected test result:
-```text
-======================================================================
-   RUNNING TEXT STEGANOGRAPHY VERIFICATION & TAMPER-RESILIENCE TESTS
-======================================================================
-[STEP 1] Generating sample carrier image (250x250 pixels)...
-[STEP 2] Testing Standard Mode (1x)... [PASS]
-[STEP 3] Testing Robust Mode (5x) with DELIBERATE PIXEL TAMPERING...
- -> Deliberately corrupting pixels (drawing solid box over embedded bits)...
- -> Tampered image saved to sample_stego_tampered.png
- -> Decoding message from the heavily tampered image...
-
------------------------------------------------------------------
-RECOVERED MESSAGE FROM TAMPERED IMAGE:
------------------------------------------------------------------
-CONFIDENTIAL TRANSMISSION
-Project: Text Steganography via LSB
-Status: Success!
-Security Clearance: Top Secret
-This message must survive pixel tampering!
------------------------------------------------------------------
-
-[VERIFICATION PASSED] Message retrieved 100% intact despite pixel damage!
- -> Tamper Detector: SUCCESSFULLY DETECTED!
- -> Bits Corrected:  272 corrupted bits repaired via Majority Voting.
- -> Tamper Rate:     4.25%
-======================================================================
 ```

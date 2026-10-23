@@ -2,9 +2,9 @@
 Ultra-Modern Desktop Graphical User Interface for Text Steganography
 ---------------------------------------------------------------------
 Executive 2-Column Split Dashboard Layout:
-- Left Column: Image & Engine Hub (Thumbnails, Metadata Pills, Protection Modes)
-- Right Column: Secret Message Studio & Telemetry (Multi-Format Templates, Word/Byte Counters, Gauges)
-- Decode Hub: Stego Inspector, Format Auto-Detection, and Visual Tamper Radar
+- Left Column: Carrier Image & Engine Hub (Thumbnails, Metadata Pills, Protection Modes)
+- Right Column: Secret Message Studio & Telemetry (Clean text input, live character count, dynamic capacity progress bar)
+- Decode Hub: Stego Inspector, Payload Extractor, and Visual Tamper Radar
 - True Rounded Modern Fluent Design via CustomTkinter
 """
 
@@ -12,8 +12,6 @@ import customtkinter as ctk
 import tkinter as tk
 from tkinter import filedialog, messagebox
 import os
-import json
-from datetime import datetime
 from PIL import Image, ImageDraw
 from stego_core import encode_text, decode_text, get_image_capacity
 
@@ -21,55 +19,19 @@ from stego_core import encode_text, decode_text, get_image_capacity
 ctk.set_appearance_mode("Dark")
 ctk.set_default_color_theme("blue")
 
-# Template formats
-TEMPLATES = {
-    "📝 Plain Text": "",
-    "🔒 Classified Memo": (
-        "=====================================================\n"
-        "CLASSIFICATION: TOP SECRET // STRICTLY CONFIDENTIAL\n"
-        f"TIMESTAMP:      {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
-        "CLEARANCE:      LEVEL 5 (EYES ONLY)\n"
-        "SUBJECT:        Operation Quantum Cipher\n"
-        "=====================================================\n\n"
-        "TRANSMISSION BODY:\n"
-        "The encrypted rendezvous point has been established.\n"
-        "All secondary channels are secured. Proceed with plan."
-    ),
-    "⚡ JSON Data": (
-        "{\n"
-        '  "protocol": "STEGO-LSB-ROBUST",\n'
-        '  "version": "2.0",\n'
-        '  "status": "classified",\n'
-        '  "credentials": {\n'
-        '    "token": "sec_98f4a2bc01e89",\n'
-        '    "access_level": 5\n'
-        "  },\n"
-        '  "nodes": ["alpha-01", "echo-04"]\n'
-        "}"
-    ),
-    "💻 Hex / Key": (
-        "--- BEGIN STEGANOGRAPHIC ACCESS KEY ---\n"
-        "KEY_ID:   0x8F9A4B2C_0019A\n"
-        "HASH:     e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\n"
-        "ENDPOINT: sftp://vault.secure.internal:8088\n"
-        "--- END STEGANOGRAPHIC ACCESS KEY ---"
-    )
-}
-
 
 class ExecutiveStegoStudio(ctk.CTk):
     def __init__(self):
         super().__init__()
 
         self.title("Text Steganography Studio — Executive Dashboard")
-        self.geometry("980x760")
-        self.minsize(920, 700)
+        self.geometry("960x730")
+        self.minsize(900, 670)
 
         # State - Encode
         self.enc_img_path = ""
         self.enc_capacity = 0
         self.enc_redundancy = 5
-        self.current_template_key = "📝 Plain Text"
 
         # State - Decode
         self.dec_img_path = ""
@@ -172,8 +134,8 @@ class ExecutiveStegoStudio(ctk.CTk):
         container = ctk.CTkFrame(self.tab_encode, fg_color="transparent")
         container.pack(fill="both", expand=True, padx=4, pady=6)
 
-        container.grid_columnconfigure(0, weight=4, minsize=350)  # Left Column (Image & Engine)
-        container.grid_columnconfigure(1, weight=6, minsize=460)  # Right Column (Message Studio)
+        container.grid_columnconfigure(0, weight=4, minsize=350)  # Left: Image & Engine Hub
+        container.grid_columnconfigure(1, weight=6, minsize=460)  # Right: Message Studio
         container.grid_rowconfigure(0, weight=1)
 
         # ---------------------------------------------------------------------
@@ -273,26 +235,13 @@ class ExecutiveStegoStudio(ctk.CTk):
         col_right = ctk.CTkFrame(container, corner_radius=12)
         col_right.grid(row=0, column=1, sticky="nsew", padx=(0, 0), pady=0)
 
-        # Header with Format Pills
-        format_bar = ctk.CTkFrame(col_right, fg_color="transparent")
-        format_bar.pack(fill="x", padx=16, pady=(14, 8))
-
+        # Clean Header
         sec_title2 = ctk.CTkLabel(
-            format_bar, text="📝 SECRET MESSAGE STUDIO",
+            col_right, text="📝 SECRET MESSAGE STUDIO",
             font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
             text_color=("#4f46e5", "#818cf8")
         )
-        sec_title2.pack(side="left")
-
-        # Format Switcher Segmented
-        self.format_selector = ctk.CTkSegmentedButton(
-            col_right,
-            values=["📝 Plain Text", "🔒 Classified Memo", "⚡ JSON Data", "💻 Hex / Key"],
-            font=ctk.CTkFont(family="Segoe UI", size=11, weight="bold"),
-            command=self._on_format_template_selected
-        )
-        self.format_selector.set("📝 Plain Text")
-        self.format_selector.pack(fill="x", padx=16, pady=(0, 10))
+        sec_title2.pack(anchor="w", padx=16, pady=(14, 10))
 
         # Text Editor
         self.enc_textbox = ctk.CTkTextbox(
@@ -300,30 +249,20 @@ class ExecutiveStegoStudio(ctk.CTk):
             font=ctk.CTkFont(family="Consolas", size=12),
             corner_radius=8
         )
-        self.enc_textbox.pack(fill="both", expand=True, padx=16, pady=(0, 8))
+        self.enc_textbox.pack(fill="both", expand=True, padx=16, pady=(0, 10))
         self.enc_textbox.bind("<KeyRelease>", self._update_telemetry)
 
-        # Telemetry Card (Characters, Words, Bytes, Capacity %)
+        # Telemetry Card (Characters & Capacity)
         telem_card = ctk.CTkFrame(col_right, corner_radius=8, fg_color=("gray92", "gray16"))
-        telem_card.pack(fill="x", padx=16, pady=(0, 8))
+        telem_card.pack(fill="x", padx=16, pady=(0, 10))
 
         telem_row1 = ctk.CTkFrame(telem_card, fg_color="transparent")
-        telem_row1.pack(fill="x", padx=12, pady=(6, 4))
+        telem_row1.pack(fill="x", padx=12, pady=(8, 4))
 
         self.telem_lbl_chars = ctk.CTkLabel(
-            telem_row1, text="Chars: 0", font=ctk.CTkFont(family="Consolas", size=11, weight="bold")
+            telem_row1, text="Payload: 0 characters", font=ctk.CTkFont(family="Consolas", size=11, weight="bold")
         )
-        self.telem_lbl_chars.pack(side="left", padx=(0, 14))
-
-        self.telem_lbl_words = ctk.CTkLabel(
-            telem_row1, text="Words: 0", font=ctk.CTkFont(family="Consolas", size=11)
-        )
-        self.telem_lbl_words.pack(side="left", padx=(0, 14))
-
-        self.telem_lbl_bytes = ctk.CTkLabel(
-            telem_row1, text="Bytes: 0 B", font=ctk.CTkFont(family="Consolas", size=11)
-        )
-        self.telem_lbl_bytes.pack(side="left")
+        self.telem_lbl_chars.pack(side="left")
 
         self.telem_lbl_cap = ctk.CTkLabel(
             telem_row1, text="Capacity: 0.0%", font=ctk.CTkFont(family="Consolas", size=11, weight="bold"),
@@ -435,48 +374,37 @@ class ExecutiveStegoStudio(ctk.CTk):
         self.radar_stats.pack(fill="x", padx=10, pady=(0, 8))
 
         # ---------------------------------------------------------------------
-        # RIGHT COLUMN: Extracted Payload & Analysis
+        # RIGHT COLUMN: Extracted Payload
         # ---------------------------------------------------------------------
         col_right = ctk.CTkFrame(container, corner_radius=12)
         col_right.grid(row=0, column=1, sticky="nsew", padx=(0, 0), pady=0)
 
         # Header Bar
         ext_header = ctk.CTkFrame(col_right, fg_color="transparent")
-        ext_header.pack(fill="x", padx=16, pady=(14, 8))
+        ext_header.pack(fill="x", padx=16, pady=(14, 10))
 
         sec_title3 = ctk.CTkLabel(
-            ext_header, text="📄 EXTRACTED PAYLOAD & TELEMETRY",
+            ext_header, text="📄 EXTRACTED CONFIDENTIAL MESSAGE",
             font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
             text_color=("#059669", "#34d399")
         )
         sec_title3.pack(side="left")
 
-        self.dec_format_badge = ctk.CTkLabel(
-            ext_header, text="FORMAT: AUTO-DETECT",
-            font=ctk.CTkFont(family="Segoe UI", size=10, weight="bold"),
-            fg_color=("gray85", "gray22"), text_color=("gray40", "gray70"),
-            corner_radius=4, padx=6, pady=2
-        )
-        self.dec_format_badge.pack(side="right")
-
         # Extracted Text Box
         self.dec_textbox = ctk.CTkTextbox(
             col_right, font=ctk.CTkFont(family="Consolas", size=12), corner_radius=8
         )
-        self.dec_textbox.pack(fill="both", expand=True, padx=16, pady=(0, 8))
+        self.dec_textbox.pack(fill="both", expand=True, padx=16, pady=(0, 10))
 
         # Decode Telemetry Row
         dec_telem = ctk.CTkFrame(col_right, corner_radius=8, fg_color=("gray92", "gray16"))
-        dec_telem.pack(fill="x", padx=16, pady=(0, 8))
+        dec_telem.pack(fill="x", padx=16, pady=(0, 10))
 
         dec_row = ctk.CTkFrame(dec_telem, fg_color="transparent")
-        dec_row.pack(fill="x", padx=12, pady=6)
+        dec_row.pack(fill="x", padx=12, pady=8)
 
-        self.dec_lbl_chars = ctk.CTkLabel(dec_row, text="Characters: 0", font=ctk.CTkFont(family="Consolas", size=11))
-        self.dec_lbl_chars.pack(side="left", padx=(0, 14))
-
-        self.dec_lbl_words = ctk.CTkLabel(dec_row, text="Words: 0", font=ctk.CTkFont(family="Consolas", size=11))
-        self.dec_lbl_words.pack(side="left", padx=(0, 14))
+        self.dec_lbl_chars = ctk.CTkLabel(dec_row, text="Payload: 0 characters", font=ctk.CTkFont(family="Consolas", size=11, weight="bold"))
+        self.dec_lbl_chars.pack(side="left")
 
         self.dec_lbl_integrity = ctk.CTkLabel(
             dec_row, text="Integrity: --", font=ctk.CTkFont(family="Consolas", size=11, weight="bold"),
@@ -530,16 +458,6 @@ class ExecutiveStegoStudio(ctk.CTk):
     # =========================================================================
     # ENCODE LOGIC & TELEMETRY
     # =========================================================================
-    def _on_format_template_selected(self, choice):
-        self.current_template_key = choice
-        template_text = TEMPLATES.get(choice, "")
-        if template_text or choice == "📝 Plain Text":
-            self.enc_textbox.delete("1.0", "end")
-            if template_text:
-                self.enc_textbox.insert("1.0", template_text)
-            self._update_telemetry()
-            self.status_lbl.configure(text=f"Loaded template: {choice}")
-
     def _browse_encode_image(self):
         file_path = filedialog.askopenfilename(
             title="Select Carrier Image",
@@ -592,13 +510,9 @@ class ExecutiveStegoStudio(ctk.CTk):
     def _update_telemetry(self, event=None):
         msg = self.enc_textbox.get("1.0", "end-1c")
         chars = len(msg)
-        words = len(msg.split())
-        byte_len = len(msg.encode("utf-8"))
         cap = self.enc_capacity
 
-        self.telem_lbl_chars.configure(text=f"Chars: {chars:,}")
-        self.telem_lbl_words.configure(text=f"Words: {words:,}")
-        self.telem_lbl_bytes.configure(text=f"Bytes: {byte_len:,} B")
+        self.telem_lbl_chars.configure(text=f"Payload: {chars:,} characters")
 
         if cap > 0:
             fraction = min(1.0, chars / cap)
@@ -625,7 +539,7 @@ class ExecutiveStegoStudio(ctk.CTk):
             return
 
         if not secret_msg:
-            messagebox.showwarning("Empty Message", "Please enter or generate a secret message to embed.")
+            messagebox.showwarning("Empty Message", "Please enter a secret message to embed.")
             return
 
         default_name = os.path.splitext(os.path.basename(img_path))[0] + "_stego.png"
@@ -664,7 +578,6 @@ class ExecutiveStegoStudio(ctk.CTk):
         self.enc_pill_res.configure(text="📐 Res: --")
         self.enc_pill_format.configure(text="🖼️ Format: --  |  💾 Size: --")
         self.enc_pill_capacity.configure(text="⚡ Max Capacity: -- chars")
-        self.format_selector.set("📝 Plain Text")
         self._update_telemetry()
         self.status_lbl.configure(text="Cleared encode hub.")
 
@@ -708,22 +621,8 @@ class ExecutiveStegoStudio(ctk.CTk):
             self.dec_textbox.delete("1.0", "end")
             self.dec_textbox.insert("1.0", result)
 
-            # Auto-detect format
-            txt = str(result).strip()
-            if txt.startswith("{") and txt.endswith("}"):
-                self.dec_format_badge.configure(text="FORMAT: JSON PAYLOAD")
-            elif "CLASSIFICATION:" in txt or "TOP SECRET" in txt:
-                self.dec_format_badge.configure(text="FORMAT: CLASSIFIED MEMO")
-            elif "BEGIN" in txt and "KEY" in txt:
-                self.dec_format_badge.configure(text="FORMAT: CRYPTO KEY")
-            else:
-                self.dec_format_badge.configure(text="FORMAT: PLAIN TEXT")
-
-            # Telemetry
             chars = len(result)
-            words = len(result.split())
-            self.dec_lbl_chars.configure(text=f"Characters: {chars:,}")
-            self.dec_lbl_words.configure(text=f"Words: {words:,}")
+            self.dec_lbl_chars.configure(text=f"Payload: {chars:,} characters")
 
             # Radar Box
             self.radar_box.pack(fill="x", padx=16, pady=(0, 10))
@@ -797,10 +696,8 @@ class ExecutiveStegoStudio(ctk.CTk):
         self.dec_preview_lbl.configure(image=None, text="📷 Select Stego Image to Inspect")
         self.dec_pill_path.configure(text="File: No image loaded")
         self.dec_pill_meta.configure(text="Status: Waiting for stego image input")
-        self.dec_format_badge.configure(text="FORMAT: AUTO-DETECT")
         self.dec_textbox.delete("1.0", "end")
-        self.dec_lbl_chars.configure(text="Characters: 0")
-        self.dec_lbl_words.configure(text="Words: 0")
+        self.dec_lbl_chars.configure(text="Payload: 0 characters")
         self.dec_lbl_integrity.configure(text="Integrity: --")
         self.radar_box.pack_forget()
         self.status_lbl.configure(text="Cleared decode hub.")

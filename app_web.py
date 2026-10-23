@@ -3,8 +3,7 @@ Ultra-Modern Web Studio for Text Steganography
 ----------------------------------------------
 Features:
 - Executive 2-Column layout with glassmorphic cards
-- Multi-Format Templates (Plain Text, Classified Memo, JSON Payload, Crypto Key)
-- Live word, byte, and character telemetry with dynamic capacity progress gauge
+- Clean secret message studio with dynamic capacity gauge
 - Side-by-side original vs stego inspection
 - One-click downloads for stego PNG and extracted TXT
 - Visual Tamper Radar with Majority Voting metrics
@@ -14,8 +13,6 @@ import streamlit as st
 from PIL import Image
 import os
 import tempfile
-import json
-from datetime import datetime
 from stego_core import encode_text, decode_text, get_image_capacity
 
 # Configure Page
@@ -25,39 +22,6 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
-
-# Template Formats
-TEMPLATES = {
-    "📝 Plain Text": "",
-    "🔒 Classified Memo": (
-        "=====================================================\n"
-        "CLASSIFICATION: TOP SECRET // STRICTLY CONFIDENTIAL\n"
-        f"TIMESTAMP:      {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
-        "CLEARANCE:      LEVEL 5 (EYES ONLY)\n"
-        "SUBJECT:        Operation Quantum Cipher\n"
-        "=====================================================\n\n"
-        "TRANSMISSION BODY:\n"
-        "The encrypted rendezvous point has been established.\n"
-        "All secondary channels are secured. Proceed with plan."
-    ),
-    "⚡ JSON Data": json.dumps({
-        "protocol": "STEGO-LSB-ROBUST",
-        "version": "2.5",
-        "classification": "TOP-SECRET",
-        "credentials": {
-            "token": "sec_88f9c104e12",
-            "access_tier": "LEVEL_5"
-        },
-        "relays": ["node-alpha", "node-bravo"]
-    }, indent=2),
-    "💻 Hex / Key": (
-        "--- BEGIN STEGANOGRAPHIC ACCESS KEY ---\n"
-        "KEY_ID:   0x8F9A4B2C_0019A\n"
-        "HASH:     e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\n"
-        "ENDPOINT: sftp://vault.secure.internal:8088\n"
-        "--- END STEGANOGRAPHIC ACCESS KEY ---"
-    )
-}
 
 # Ultra-Modern CSS
 st.markdown("""
@@ -113,15 +77,6 @@ st.markdown("""
         font-weight: 600;
         margin-bottom: 14px;
     }
-    
-    .telemetry-badge {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        padding: 4px 10px;
-        border-radius: 6px;
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 12px;
-    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -130,7 +85,7 @@ st.markdown("""
 <div class="hero-banner">
     <div class="hero-title">🔐 Text Steganography Studio — Executive Dashboard</div>
     <div class="hero-subtitle">
-        Spatial LSB Steganography • 5x Majority-Voting Error Correction • Multi-Format Payload Templates
+        Spatial LSB Steganography • 5x Majority-Voting Error Correction • Tamper Telemetry
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -223,39 +178,23 @@ with tab_encode:
     with col_right:
         st.markdown("##### 📝 Secret Message Studio")
 
-        # Format Template Selector
-        format_choice = st.selectbox(
-            "Message Format Template:",
-            options=["📝 Plain Text", "🔒 Classified Memo", "⚡ JSON Data", "💻 Hex / Key"],
-            index=0
-        )
-
-        # Pre-fill with template if selected
-        default_val = TEMPLATES.get(format_choice, "")
-
         secret_input = st.text_area(
             "Confidential Payload:",
-            value=default_val,
-            height=240,
-            placeholder="Type your sensitive confidential payload here..."
+            height=260,
+            placeholder="Type your sensitive confidential secret message here..."
         )
 
         # Telemetry
         chars = len(secret_input)
-        words = len(secret_input.split())
-        bytes_len = len(secret_input.encode("utf-8"))
-
-        t_col1, t_col2, t_col3, t_col4 = st.columns(4)
-        t_col1.markdown(f"**Chars**: `{chars:,}`")
-        t_col2.markdown(f"**Words**: `{words:,}`")
-        t_col3.markdown(f"**Bytes**: `{bytes_len:,} B`")
+        t_col1, t_col2 = st.columns(2)
+        t_col1.markdown(f"**Payload**: `{chars:,} characters`")
 
         if capacity > 0:
             pct = min(1.0, chars / capacity)
-            t_col4.markdown(f"**Usage**: `{pct*100:.1f}%`")
+            t_col2.markdown(f"**Capacity**: `{pct*100:.1f}%`")
             st.progress(pct)
         else:
-            t_col4.markdown("**Usage**: `0.0%`")
+            t_col2.markdown("**Capacity**: `0.0%`")
             st.progress(0.0)
 
         # Action Button
@@ -314,7 +253,7 @@ with tab_decode:
             st.caption(f"📐 {sw}×{sh} px  |  🖼️ Lossless PNG  |  💾 {s_kb:.1f} KB")
 
     with d_col2:
-        st.markdown("##### 📄 Extracted Payload & Telemetry")
+        st.markdown("##### 📄 Extracted Confidential Message")
 
         if stego_img:
             if st.button("🔓 Extract Secret Message & Verify Integrity", type="primary", use_container_width=True):
@@ -324,19 +263,6 @@ with tab_decode:
 
                 try:
                     res = decode_text(tmp_stego_path)
-
-                    # Format auto-detection
-                    txt = str(res).strip()
-                    if txt.startswith("{") and txt.endswith("}"):
-                        fmt_badge = "JSON PAYLOAD"
-                    elif "CLASSIFICATION:" in txt or "TOP SECRET" in txt:
-                        fmt_badge = "CLASSIFIED MEMO"
-                    elif "BEGIN" in txt and "KEY" in txt:
-                        fmt_badge = "CRYPTO KEY"
-                    else:
-                        fmt_badge = "PLAIN TEXT"
-
-                    st.markdown(f"**Detected Format**: `{fmt_badge}`")
 
                     # Tamper Radar Card
                     if res.tampered:
@@ -360,11 +286,11 @@ with tab_decode:
                     st.text_area(
                         "Extracted Confidential Message:",
                         value=res,
-                        height=220
+                        height=240
                     )
 
                     c1, c2 = st.columns(2)
-                    c1.markdown(f"**Chars**: `{len(res):,}`  |  **Words**: `{len(res.split()):,}`")
+                    c1.markdown(f"**Payload**: `{len(res):,} characters`")
                     c2.download_button(
                         label="📄 Download Extracted Message (.txt)",
                         data=res,
